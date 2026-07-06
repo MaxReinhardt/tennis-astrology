@@ -11,6 +11,7 @@ dependencies = [
     "python-dotenv>=1.0",
     "psycopg[binary]>=3.2",
     "rapidfuzz>=3.9",
+    "xlrd>=2.0",
 ]
 
 [dependency-groups]
@@ -20,6 +21,10 @@ dev = [
 ]
 
 [tool.pytest.ini_options]
+filterwarnings = [
+    # tennis-data.co.uk xlsx files carry a non-standard extension openpyxl drops
+    "ignore:Unknown extension is not supported and will be removed:UserWarning",
+]
 markers = [
     "m0: M0 - project scaffolding & environment",
     "m1: M1 - raw data acquisition",
