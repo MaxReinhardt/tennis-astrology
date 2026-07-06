@@ -1,0 +1,47 @@
+[project]
+name = "tennisdb"
+version = "0.1.0"
+description = "Tennis match & betting-odds database with financial-markets-style backtesting"
+requires-python = ">=3.12"
+dependencies = [
+    "pandas>=2.2",
+    "duckdb>=1.0",
+    "httpx>=0.27",
+    "openpyxl>=3.1",
+    "python-dotenv>=1.0",
+    "psycopg[binary]>=3.2",
+    "rapidfuzz>=3.9",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.2",
+    "ruff>=0.6",
+]
+
+[tool.pytest.ini_options]
+markers = [
+    "m0: M0 - project scaffolding & environment",
+    "m1: M1 - raw data acquisition",
+    "m2: M2 - staging layer in DuckDB",
+    "m3: M3 - canonical schema & Supabase provisioning",
+    "m4: M4 - entity resolution & merge",
+    "m5: M5 - data-quality suite & publish to Supabase",
+    "m6: M6 - feature layer",
+    "m7: M7 - backtesting engine",
+    "m8: M8 - hypothesis-research workflow",
+]
+
+[tool.ruff]
+line-length = 100
+src = ["src", "scripts", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/tennisdb"]
