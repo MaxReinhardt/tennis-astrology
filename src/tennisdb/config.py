@@ -14,6 +14,7 @@ RAW_DIR = DATA_DIR / "raw"
 SACKMANN_RAW_DIR = RAW_DIR / "sackmann"
 TENNISDATA_RAW_DIR = RAW_DIR / "tennisdata"
 DUCKDB_PATH = DATA_DIR / "warehouse.duckdb"
+QUALITY_DIR = DATA_DIR / "quality"
 MIGRATIONS_DIR = PROJECT_ROOT / "db" / "migrations"
 SEED_DIR = PROJECT_ROOT / "db" / "seed"
 
