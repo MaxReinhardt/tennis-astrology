@@ -1,6 +1,7 @@
 """Build the local DuckDB warehouse from raw files + manifest."""
 
 import argparse
+import json
 import sys
 
 from tennisdb import warehouse
@@ -21,6 +22,14 @@ def parse_args() -> argparse.Namespace:
         "--resolve",
         action="store_true",
         help="resolve tennis-data rows onto canonical matches and emit tennis.odds",
+    )
+    parser.add_argument(
+        "--quality",
+        action="store_true",
+        help="run the data-quality suite and write data/quality/quality_report.json",
+    )
+    parser.add_argument(
+        "--all", action="store_true", help="run stage, load, resolve and quality in order"
     )
     return parser.parse_args()
 
@@ -59,19 +68,40 @@ def run_resolve() -> list[str]:
     return report.summary_lines()
 
 
+def run_quality() -> tuple[list[str], bool]:
+    from tennisdb.quality.checks import REPORT_PATH, run_quality_suite, write_report
+
+    connection = warehouse.connect()
+    try:
+        report = run_quality_suite(connection)
+        write_report(report)
+        stats = {"passed": report.passed(), "waived": [r.name for r in report.waived()]}
+        connection.execute(
+            "INSERT INTO tennis.ingest_log (step, stats) "
+            "VALUES ('quality:checks', CAST(? AS JSON))",
+            [json.dumps(stats)],
+        )
+    finally:
+        connection.close()
+    return report.summary_lines() + [f"report written to {REPORT_PATH}"], report.passed()
+
+
 def main() -> int:
     args = parse_args()
-    steps = [
-        (args.stage, run_stage),
-        (args.load, run_load),
-        (args.resolve, run_resolve),
-    ]
-    if not any(requested for requested, _ in steps):
-        print("nothing to do: pass --stage, --load and/or --resolve")
+    if args.all:
+        args.stage = args.load = args.resolve = args.quality = True
+    if not (args.stage or args.load or args.resolve or args.quality):
+        print("nothing to do: pass --stage, --load, --resolve, --quality and/or --all")
         return 2
-    for requested, run_step in steps:
+    build_steps = ((args.stage, run_stage), (args.load, run_load), (args.resolve, run_resolve))
+    for requested, run_step in build_steps:
         if requested:
             print("\n".join(run_step()))
+    if args.quality:
+        lines, passed = run_quality()
+        print("\n".join(lines))
+        if not passed:
+            return 1
     return 0
 
 

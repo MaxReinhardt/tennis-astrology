@@ -1,0 +1,11 @@
+# Documented, reviewed exceptions to the quality suite. A waived check that fails is
+# reported as "waived" (not "failed") and does not fail the M5 gate. Add an entry only
+# after confirming the finding is a known data artefact, never to silence a real bug.
+
+matches_no_duplicate_pairings:
+  reason: >
+    39 fully-identical pairings survive in Jeff Sackmann's pre-2001 round-robin and
+    exhibition-era match files (same edition, round, players, score and date). They are
+    upstream source artefacts that sit entirely outside the odds era: none carry odds,
+    so matches_no_duplicate_odds_pairings stays at zero and no backtest can double-count
+    them. Reviewed 2026-08; re-examine if the count moves.
