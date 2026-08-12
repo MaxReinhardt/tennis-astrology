@@ -24,12 +24,19 @@ def parse_args() -> argparse.Namespace:
         help="resolve tennis-data rows onto canonical matches and emit tennis.odds",
     )
     parser.add_argument(
+        "--features",
+        action="store_true",
+        help="build the analytics feature tables (elo, form, market, astro)",
+    )
+    parser.add_argument(
         "--quality",
         action="store_true",
         help="run the data-quality suite and write data/quality/quality_report.json",
     )
     parser.add_argument(
-        "--all", action="store_true", help="run stage, load, resolve and quality in order"
+        "--all",
+        action="store_true",
+        help="run stage, load, resolve, features and quality in order",
     )
     return parser.parse_args()
 
@@ -68,6 +75,17 @@ def run_resolve() -> list[str]:
     return report.summary_lines()
 
 
+def run_features() -> list[str]:
+    from tennisdb.features.pipeline import build_features
+
+    connection = warehouse.connect()
+    try:
+        report = build_features(connection)
+    finally:
+        connection.close()
+    return report.summary_lines()
+
+
 def run_quality() -> tuple[list[str], bool]:
     from tennisdb.quality.checks import REPORT_PATH, run_quality_suite, write_report
 
@@ -89,11 +107,16 @@ def run_quality() -> tuple[list[str], bool]:
 def main() -> int:
     args = parse_args()
     if args.all:
-        args.stage = args.load = args.resolve = args.quality = True
-    if not (args.stage or args.load or args.resolve or args.quality):
-        print("nothing to do: pass --stage, --load, --resolve, --quality and/or --all")
+        args.stage = args.load = args.resolve = args.features = args.quality = True
+    if not (args.stage or args.load or args.resolve or args.features or args.quality):
+        print("nothing to do: pass --stage, --load, --resolve, --features, --quality and/or --all")
         return 2
-    build_steps = ((args.stage, run_stage), (args.load, run_load), (args.resolve, run_resolve))
+    build_steps = (
+        (args.stage, run_stage),
+        (args.load, run_load),
+        (args.resolve, run_resolve),
+        (args.features, run_features),
+    )
     for requested, run_step in build_steps:
         if requested:
             print("\n".join(run_step()))

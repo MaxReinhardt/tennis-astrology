@@ -66,7 +66,7 @@ class FakePublishSink:
 
 
 def _source_of(tables, rows_per_table: int) -> FakeCanonicalSource:
-    return FakeCanonicalSource({table.name: rows_per_table for table in tables})
+    return FakeCanonicalSource({table.qualified: rows_per_table for table in tables})
 
 
 def test_publish_truncates_every_canonical_table_child_first():
@@ -74,7 +74,7 @@ def test_publish_truncates_every_canonical_table_child_first():
 
     publish_canonical(_source_of(CORE_TABLES, 1), sink, CORE_TABLES)
 
-    assert sink.truncated == [table.name for table in reversed(ALL_TABLES)]
+    assert sink.truncated == [table.qualified for table in reversed(ALL_TABLES)]
 
 
 def test_publish_copies_selected_tables_parent_before_child():
@@ -82,7 +82,7 @@ def test_publish_copies_selected_tables_parent_before_child():
 
     publish_canonical(_source_of(CORE_TABLES, 2), sink, CORE_TABLES)
 
-    assert sink.copy_order == [table.name for table in CORE_TABLES]
+    assert sink.copy_order == [table.qualified for table in CORE_TABLES]
 
 
 def test_publish_reports_reconciled_row_count_per_table():
@@ -90,11 +90,11 @@ def test_publish_reports_reconciled_row_count_per_table():
 
     report = publish_canonical(_source_of(CORE_TABLES, 4), sink, CORE_TABLES)
 
-    assert report.table_rows == {table.name: 4 for table in CORE_TABLES}
+    assert report.table_rows == {table.qualified: 4 for table in CORE_TABLES}
 
 
 def test_publish_raises_when_target_count_differs_from_source():
-    sink = FakePublishSink(drop_last_from=MATCHES.name)
+    sink = FakePublishSink(drop_last_from=MATCHES.qualified)
 
     with pytest.raises(PublishCountMismatch, match="matches"):
         publish_canonical(_source_of(CORE_TABLES, 3), sink, CORE_TABLES)
@@ -108,7 +108,7 @@ def test_publish_logs_publish_step_with_table_rows():
     assert len(sink.logged) == 1
     step, stats = sink.logged[0]
     assert step == PUBLISH_STEP
-    assert stats["table_rows"][MATCHES.name] == 1
+    assert stats["table_rows"][MATCHES.qualified] == 1
 
 
 def test_core_tables_exclude_rankings_but_all_tables_include_it():

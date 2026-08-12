@@ -17,6 +17,11 @@ from typing import Protocol
 class CanonicalTable:
     name: str
     columns: tuple[str, ...]
+    schema: str = "tennis"
+
+    @property
+    def qualified(self) -> str:
+        return f"{self.schema}.{self.name}"
 
 
 PLAYERS = CanonicalTable(
@@ -60,7 +65,38 @@ ALL_TABLES = (
 # Supabase free tier. scripts/publish.py --include-rankings publishes ALL_TABLES.
 CORE_TABLES = tuple(table for table in ALL_TABLES if table is not RANKINGS)
 
+ELO_PRE = CanonicalTable(
+    "elo_pre",
+    ("match_id", "p1_elo_pre", "p2_elo_pre", "p1_surface_elo_pre", "p2_surface_elo_pre", "surface"),
+    schema="analytics",
+)
+FORM = CanonicalTable(
+    "form",
+    (
+        "match_id", "p1_win_pct_10", "p1_win_pct_25", "p2_win_pct_10", "p2_win_pct_25",
+        "p1_rest_days", "p2_rest_days", "p1_matches_14d", "p2_matches_14d",
+        "h2h_p1_wins", "h2h_total", "p1_age_years", "p2_age_years",
+    ),
+    schema="analytics",
+)
+MARKET = CanonicalTable(
+    "market",
+    (
+        "match_id", "bookmaker", "p1_market_prob", "p2_market_prob",
+        "overround", "max_avg_dispersion",
+    ),
+    schema="analytics",
+)
+PLAYER_ASTRO = CanonicalTable(
+    "player_astro",
+    ("player_id", "zodiac_sign", "element", "birth_month"),
+    schema="analytics",
+)
+# Feature tables carry no foreign keys, so truncation order is irrelevant.
+FEATURE_TABLES = (ELO_PRE, FORM, MARKET, PLAYER_ASTRO)
+
 PUBLISH_STEP = "publish:supabase"
+FEATURE_PUBLISH_STEP = "publish:features"
 
 
 class CanonicalSource(Protocol):
@@ -95,9 +131,7 @@ class PublishReport:
 
     def summary_lines(self) -> list[str]:
         lines = [f"published to {self.sink_name}:"]
-        lines.extend(
-            f"  tennis.{table}: {count} rows" for table, count in self.table_rows.items()
-        )
+        lines.extend(f"  {table}: {count} rows" for table, count in self.table_rows.items())
         lines.append(
             f"  {sum(self.table_rows.values())} rows across {len(self.table_rows)} tables"
         )
@@ -107,20 +141,31 @@ class PublishReport:
 def publish_canonical(
     source: CanonicalSource, sink: PublishSink, tables: Sequence[CanonicalTable]
 ) -> PublishReport:
-    sink.truncate([table.name for table in reversed(ALL_TABLES)])
+    sink.truncate([table.qualified for table in reversed(ALL_TABLES)])
+    return _copy_all(source, sink, tables, PUBLISH_STEP)
+
+
+def publish_features(source: CanonicalSource, sink: PublishSink) -> PublishReport:
+    sink.truncate([table.qualified for table in FEATURE_TABLES])
+    return _copy_all(source, sink, FEATURE_TABLES, FEATURE_PUBLISH_STEP)
+
+
+def _copy_all(
+    source: CanonicalSource, sink: PublishSink, tables: Sequence[CanonicalTable], step: str
+) -> PublishReport:
     report = PublishReport(sink_name=sink.name)
     for table in tables:
-        report.table_rows[table.name] = _copy_reconciled(source, sink, table)
-    sink.record_log(PUBLISH_STEP, report.stats())
+        report.table_rows[table.qualified] = _copy_reconciled(source, sink, table)
+    sink.record_log(step, report.stats())
     return report
 
 
 def _copy_reconciled(
     source: CanonicalSource, sink: PublishSink, table: CanonicalTable
 ) -> int:
-    copied = sink.copy(table.name, table.columns, source.rows(table.name, table.columns))
-    expected = source.count(table.name)
-    loaded = sink.count(table.name)
+    copied = sink.copy(table.qualified, table.columns, source.rows(table.qualified, table.columns))
+    expected = source.count(table.qualified)
+    loaded = sink.count(table.qualified)
     if not copied == expected == loaded:
         raise PublishCountMismatch(
             f"{table.name}: source has {expected}, copied {copied}, target has {loaded}"

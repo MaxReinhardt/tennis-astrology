@@ -30,11 +30,11 @@ class DuckDbCanonicalSource:
         return cls(warehouse.connect())
 
     def count(self, table: str) -> int:
-        return self._connection.execute(f"SELECT count(*) FROM tennis.{table}").fetchone()[0]
+        return self._connection.execute(f"SELECT count(*) FROM {table}").fetchone()[0]
 
     def rows(self, table: str, columns: Sequence[str]) -> Iterator[tuple]:
         projection = ", ".join(columns)
-        cursor = self._connection.execute(f"SELECT {projection} FROM tennis.{table}")
+        cursor = self._connection.execute(f"SELECT {projection} FROM {table}")
         while True:
             batch = cursor.fetchmany(_FETCH_BATCH)
             if not batch:
@@ -61,11 +61,10 @@ class SupabasePublishSink:
         return cls(psycopg.connect(config.SUPABASE_DB_URL))
 
     def truncate(self, tables: Sequence[str]) -> None:
-        targets = ", ".join(f"tennis.{table}" for table in tables)
-        self._connection.execute(f"TRUNCATE {targets}")
+        self._connection.execute(f"TRUNCATE {', '.join(tables)}")
 
     def copy(self, table: str, columns: Sequence[str], rows: Iterable[tuple]) -> int:
-        statement = f"COPY tennis.{table} ({', '.join(columns)}) FROM STDIN"
+        statement = f"COPY {table} ({', '.join(columns)}) FROM STDIN"
         copied = 0
         with self._connection.cursor() as cursor, cursor.copy(statement) as copy:
             for row in rows:
@@ -74,7 +73,7 @@ class SupabasePublishSink:
         return copied
 
     def count(self, table: str) -> int:
-        return self._connection.execute(f"SELECT count(*) FROM tennis.{table}").fetchone()[0]
+        return self._connection.execute(f"SELECT count(*) FROM {table}").fetchone()[0]
 
     def record_log(self, step: str, stats: dict) -> None:
         self._connection.execute(
