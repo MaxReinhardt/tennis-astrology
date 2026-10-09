@@ -117,6 +117,10 @@ cd web && pnpm install && API_ORIGIN=http://127.0.0.1:8000 pnpm dev
 | `SUPABASE_READ_URL` | Vercel | Supabase **transaction-pooler** URL (port 6543), ideally read-only; unset → local DuckDB |
 | `ANTHROPIC_API_KEY` | Vercel / `.env` | enables natural-language questions; the controls work without it |
 
+The Vercel CLI ignores `.gitignore`, so `.vercelignore` is an **allowlist** (only `vercel.json`, `src/` and
+`web/` are uploaded, keeping `data/` and `.env` out); a new deploy-time file or folder must be added
+to it explicitly.
+
 `/api/translate` spends money per call, so put the deployment behind Deployment Protection
 or Vercel's firewall before sharing the URL.
 
