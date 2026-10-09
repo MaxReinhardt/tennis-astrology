@@ -1,0 +1,30 @@
+[
+  {
+    "study_id": "s1_clv_persistence",
+    "title": "S1 \u00b7 Does EloValue show positive CLV when ROI is noisy?",
+    "verdict": "not_supported",
+    "conclusion": "EloValue's CLV does not exceed a random-bet control with the same fills: the positive raw CLV comes from the fill book's tighter prices, not from edge.",
+    "statement": "Bets placed when Elo disagrees with the closing market by at least \u03b8 beat the closing price by more than a random-bet control with the same fills, even though the ROI over the same bets cannot be distinguished from zero."
+  },
+  {
+    "study_id": "s2_favourite_longshot",
+    "title": "S2 \u00b7 Favourite\u2013longshot bias by surface and price",
+    "verdict": "supported",
+    "conclusion": "Longshots lose more than favourites on every surface and no bucket is profitable.",
+    "statement": "Expected value declines as the price lengthens: on every surface the shortest bucket has a higher ROI than the longest, and no bucket's ROI interval lies entirely above zero."
+  },
+  {
+    "study_id": "s3_zodiac_null",
+    "title": "S3 \u00b7 Does a player's zodiac sign beat the market?",
+    "verdict": "not_supported",
+    "conclusion": "1 of 28 cohorts have raw p < 0.05 (about 1.4 expected by chance); none survives correction (smallest Bonferroni p = 0.790).",
+    "statement": "At least one zodiac sign, element or birth month wins more often than its no-vig market price implies."
+  },
+  {
+    "study_id": "s4_host_nation",
+    "title": "S4 \u00b7 Does backing or fading home-nation players make money?",
+    "verdict": "not_supported",
+    "conclusion": "Home players' win rate is indistinguishable from their market price (p = 0.759) and neither strategy beats the margin on the holdout.",
+    "statement": "Players from the tournament's host country win at a rate different from their no-vig market price, and backing or fading them earns a positive ROI."
+  }
+]

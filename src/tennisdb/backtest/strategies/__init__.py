@@ -9,6 +9,7 @@ from collections.abc import Mapping
 from tennisdb.backtest.strategies.base import ParameterSpec, Strategy, StrategyDefinition
 from tennisdb.backtest.strategies.baselines import BackFavorites, BackUnderdogs, RandomBet
 from tennisdb.backtest.strategies.elo_value import EloValue
+from tennisdb.backtest.strategies.host_nation import BackHomeNation, FadeHomeNation
 
 _PRICE_BAND_PARAMETERS = (
     ParameterSpec(
@@ -30,6 +31,14 @@ def _build_back_favorites(parameters: Mapping[str, float]) -> BackFavorites:
 
 def _build_back_underdogs(parameters: Mapping[str, float]) -> BackUnderdogs:
     return BackUnderdogs(min_price=parameters["min_price"], max_price=parameters["max_price"])
+
+
+def _build_back_home_nation(parameters: Mapping[str, float]) -> BackHomeNation:
+    return BackHomeNation(min_price=parameters["min_price"], max_price=parameters["max_price"])
+
+
+def _build_fade_home_nation(parameters: Mapping[str, float]) -> FadeHomeNation:
+    return FadeHomeNation(min_price=parameters["min_price"], max_price=parameters["max_price"])
 
 
 def _build_elo_value(parameters: Mapping[str, float]) -> EloValue:
@@ -63,6 +72,24 @@ STRATEGIES: dict[str, StrategyDefinition] = {
             "Back the fill book's underdog on every match, within an optional price band."
         ),
         factory=_build_back_underdogs,
+        parameters=_PRICE_BAND_PARAMETERS,
+    ),
+    "back_home_nation": StrategyDefinition(
+        name="back_home_nation",
+        description=(
+            "Back the player who shares the tournament host country's nationality, when "
+            "exactly one player does, within an optional price band."
+        ),
+        factory=_build_back_home_nation,
+        parameters=_PRICE_BAND_PARAMETERS,
+    ),
+    "fade_home_nation": StrategyDefinition(
+        name="fade_home_nation",
+        description=(
+            "Back the visiting player against a host-nation opponent, when exactly one "
+            "player is from the host country, within an optional price band."
+        ),
+        factory=_build_fade_home_nation,
         parameters=_PRICE_BAND_PARAMETERS,
     ),
     "elo_value": StrategyDefinition(

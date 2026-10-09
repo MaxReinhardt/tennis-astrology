@@ -92,8 +92,13 @@ PLAYER_ASTRO = CanonicalTable(
     ("player_id", "zodiac_sign", "element", "birth_month"),
     schema="analytics",
 )
+EDITION_GEO = CanonicalTable(
+    "edition_geo",
+    ("edition_id", "host_city", "host_country_ioc"),
+    schema="analytics",
+)
 # Feature tables carry no foreign keys, so truncation order is irrelevant.
-FEATURE_TABLES = (ELO_PRE, FORM, MARKET, PLAYER_ASTRO)
+FEATURE_TABLES = (ELO_PRE, FORM, MARKET, PLAYER_ASTRO, EDITION_GEO)
 
 PUBLISH_STEP = "publish:supabase"
 FEATURE_PUBLISH_STEP = "publish:features"

@@ -5,7 +5,8 @@ financial-markets-style backtesting environment for testing betting hypotheses �
 including, per the repo name, astrological ones (as a multiple-testing discipline demo).
 
 **Start here: [PLAN.md](PLAN.md)** — the full implementation plan, structured as
-milestones M0–M8, each with verifiable acceptance criteria.
+milestones M0–M8, each with verifiable acceptance criteria. Questions are answered
+through the [research UI](#research-ui) or the [studies](studies/README.md).
 
 ## Summary
 
@@ -17,50 +18,113 @@ milestones M0–M8, each with verifiable acceptance criteria.
   Kelly staking, CLV, bootstrap confidence intervals, and a pre-registered
   hypothesis-study workflow.
 
-## Status
+## Quickstart
 
-M0–M7 implemented (project scaffolding through the backtesting engine); M8's
-hypothesis-research workflow is next. Run `uv run pytest` to check the full suite, or
-`uv run pytest -m m7` for just the backtesting engine.
+```bash
+uv sync
+cp .env.example .env                                  # fill in SUPABASE_DB_URL (see below)
+uv run python scripts/ingest_all.py                   # M1  download Sackmann + tennis-data
+uv run python scripts/build_db.py --all --features    # M2–M6  stage, resolve, merge, check, features
+uv run python scripts/migrate.py                      # apply db/migrations to DuckDB and Supabase
+uv run python scripts/publish.py                      # M5  canonical tables -> Supabase
+uv run python scripts/publish.py --features           #     feature tables  -> Supabase
+uv run python scripts/run_backtest.py --strategy elo_value --from 2015 --to 2019 --stake kelly:0.25
+uv run python scripts/run_study.py --study all        # M8  the four pre-registered studies
+uv run pytest                                         # everything, all markers
+```
 
-One manual prerequisite before milestone M3/M5: create a free Supabase project and put
-its Postgres connection string in `.env` (see `.env.example`).
+`uv run pytest -m m7` (or any `m0`…`m8`) re-checks a single milestone. Creating a free
+Supabase project and putting its direct Postgres URL in `.env` is the one manual step.
 
 ## Backtesting
 
-```bash
-uv run python scripts/build_db.py --all --features   # build the warehouse once
-uv run python scripts/run_backtest.py --strategy elo_value --from 2015 --to 2019 \
-    --stake kelly:0.25
-```
+Each run writes `data/backtests/<run_id>/{result.json, charts.json, equity_curve.csv,
+bets.csv}` and logs a summary row to `tennis.ingest_log`. Strategies: `random_bet`
+(control), `back_favorites`, `back_underdogs`, `elo_value`, `back_home_nation`,
+`fade_home_nation`.
 
-Each run writes `data/backtests/<run_id>/{result.json, equity_curve.csv, bets.csv}` and
-logs a summary row to `tennis.ingest_log`.
+**Use a large bankroll for flat stakes.** A flat £10 stake on the default £1,000 bankroll
+goes bust long before a multi-season sample ends and silently truncates the run; the
+studies use a £10M bankroll for exactly this reason.
 
 **Train/validation/test discipline.** Any strategy parameter you tune (θ in `elo_value`,
 a price band in `back_underdogs`, a staking fraction) must be chosen using seasons
 ≤ 2018 only. Seasons 2019 onward are the held-out test set: touch them only for the
 final, pre-registered evaluation of a strategy you have already fixed. This is
 backtesting's version of a train/test split, and it exists to prevent the kind of
-p-hacking that makes most "edges" vanish out of sample — see M8's hypothesis template
-for the full protocol.
+p-hacking that makes most "edges" vanish out of sample — see
+[docs/hypothesis_template.md](docs/hypothesis_template.md) for the full protocol.
 
-### Driving the engine from JSON (and, later, natural language)
+**Odds are closing prices only.** There is no opening line, so CLV compares one book's
+close with another's. Fills use Pinnacle where present and the benchmark is the Avg book,
+so *every* bet shows positive CLV (a coin-flip `random_bet` scores about +2.8%). Read CLV
+only relative to that control — Study S1 does.
 
-The engine takes one flat, JSON-serializable request and returns pre-formatted,
-labelled metrics — designed so a UI, or an LLM wrapper translating a question into a
-request, needs no real transformation step in either direction:
+### Driving the engine from JSON
+
+The engine takes one flat, JSON-serializable request and returns pre-formatted, labelled
+metrics:
 
 ```bash
-uv run python scripts/run_backtest.py --catalog          # the full machine-readable
-                                                           # contract: every strategy,
-                                                           # parameter, filter, stake
-                                                           # rule and output metric
+uv run python scripts/run_backtest.py --catalog          # every strategy, parameter,
+                                                           # filter, stake rule and metric
 echo '{"strategy": "back_underdogs",
        "filters": {"surfaces": ["Clay"], "from_season": 2015, "to_season": 2018}}' \
   | uv run python scripts/run_backtest.py --request - --json
 ```
 
-An invalid request (unknown strategy, out-of-band parameter, …) is rejected with a
-message naming the allowed values, so a caller — human or model — can self-correct
-without a second round trip.
+An invalid request is rejected with a message naming the allowed values, so a caller —
+human or model — can self-correct without a second round trip.
+
+## Studies
+
+Four worked studies in [studies/](studies/README.md), each a pre-registered hypothesis,
+decision rule and holdout, with a results block regenerated by `scripts/run_study.py`:
+
+| Study | Question | Verdict |
+|---|---|---|
+| [S1](studies/s1_clv_persistence.md) | Does `elo_value` beat the closing line beyond its fills alone? | not supported — a coin flip scores higher raw CLV |
+| [S2](studies/s2_favourite_longshot.md) | Where is EV least negative, by surface × price? | supported — longshots lose most, nothing is profitable |
+| [S3](studies/s3_zodiac_null.md) | Do zodiac signs beat the market? | not supported — 1 of 28 raw p < 0.05, none after Bonferroni |
+| [S4](studies/s4_host_nation.md) | Does backing or fading home-nation players pay? | not supported — gap −0.1pp, p = 0.76 |
+
+Host countries come from the host city in the odds files (`db/seed/host_countries.csv`,
+198 cities → IOC codes); `analytics.edition_geo` holds the result.
+
+**Adding a strategy:** one class in `src/tennisdb/backtest/strategies/` and one entry in
+`STRATEGIES`; the request schema, CLI, API and UI all read that registry.
+**Adding a study:** see [studies/README.md](studies/README.md).
+
+## Research UI
+
+A Next.js app (`web/`) over a FastAPI service (`src/tennisdb/api/`), deployed as two
+[Vercel Services](https://vercel.com/docs/services) from the repo-root `vercel.json`
+(`ui` = `web/`, `api` = `src/`, whose runtime dependencies are listed in `src/requirements.txt`;
+`run_study.py` mirrors each study's JSON into `src/tennisdb/api/study_results/` so it ships with the API). Ask a
+question in English and Claude (`claude-opus-5`, low effort, ~1–2¢ per question) turns it
+into a validated backtest request that you can edit before running; or set the controls
+directly. Every saved study is browsable with its tables and charts.
+
+```bash
+# local, against the DuckDB warehouse
+uv run uvicorn tennisdb.api.app:app --port 8000 &
+cd web && pnpm install && API_ORIGIN=http://127.0.0.1:8000 pnpm dev
+# or both services together: vercel dev -L
+```
+
+| Variable | Where | Purpose |
+|---|---|---|
+| `SUPABASE_READ_URL` | Vercel | Supabase **transaction-pooler** URL (port 6543), ideally read-only; unset → local DuckDB |
+| `ANTHROPIC_API_KEY` | Vercel / `.env` | enables natural-language questions; the controls work without it |
+
+`/api/translate` spends money per call, so put the deployment behind Deployment Protection
+or Vercel's firewall before sharing the URL.
+
+## Data licences and attribution
+
+- **Match results, players, rankings:** Jeff Sackmann's tennis_atp / tennis_wta,
+  [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) — non-commercial
+  research use, with attribution and share-alike.
+- **Bookmaker odds:** [tennis-data.co.uk](http://www.tennis-data.co.uk/), personal use.
+
+Nothing here is betting advice; the studies' point is that most apparent edges are not.

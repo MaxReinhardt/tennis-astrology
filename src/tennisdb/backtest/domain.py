@@ -35,9 +35,16 @@ class MatchOpportunity:
     p1_consensus_prob: float
     p1_elo_prob: float
     p1_surface_elo_prob: float
+    p1_is_home: bool = False
+    p2_is_home: bool = False
 
     def price(self, side: Side) -> float:
         return self.p1_price if side == "p1" else self.p2_price
+
+    def is_home(self, side: Side) -> bool:
+        """Whether `side` shares nationality with the tournament's host country. False
+        whenever host country or a player's nationality is unknown (M8 S4)."""
+        return self.p1_is_home if side == "p1" else self.p2_is_home
 
     def consensus_price(self, side: Side) -> float:
         return self.p1_consensus_price if side == "p1" else self.p2_consensus_price
@@ -88,6 +95,7 @@ class SettledBet:
     profit: float
     won: bool
     bankroll_after: float
+    surface: str | None = None
 
 
 @dataclass(frozen=True)

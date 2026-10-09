@@ -1,0 +1,127 @@
+{
+  "study_id": "s4_host_nation",
+  "title": "S4 \u00b7 Does backing or fading home-nation players make money?",
+  "hypothesis": {
+    "statement": "Players from the tournament's host country win at a rate different from their no-vig market price, and backing or fading them earns a positive ROI.",
+    "rationale": "Home crowds, local-media attention and bettors backing their compatriots could push home players' prices below fair \u2014 or crowd support could genuinely help them and the market under-price it. Either direction is testable.",
+    "metric": "home-player win rate vs market-implied (z-test); ROI and CLV bootstrap 95% CIs of back_home_nation and fade_home_nation",
+    "threshold": "Supported iff the cohort p < 0.05 and a strategy's 2019+ ROI CI lies entirely above 0 with >= 100 bets.",
+    "in_sample": "none \u2014 nothing is tuned",
+    "out_of_sample": "seasons >= 2019, reported alongside the full sample"
+  },
+  "tables": [
+    {
+      "title": "Home player vs market (matches with exactly one home player)",
+      "columns": [
+        "Observations",
+        "Win rate",
+        "Market-implied",
+        "Gap",
+        "p"
+      ],
+      "rows": [
+        [
+          20651,
+          "46.64%",
+          "46.75%",
+          "-0.11%",
+          "0.759"
+        ]
+      ]
+    },
+    {
+      "title": "Trading the home-nation effect (flat stake; CLV is only meaningful relative to the control \u2014 fills at Pinnacle vs an Avg close give every bet positive CLV)",
+      "columns": [
+        "Strategy",
+        "Sample",
+        "Bets",
+        "ROI",
+        "ROI 95% CI",
+        "CLV (95% CI)"
+      ],
+      "rows": [
+        [
+          "back_home_nation",
+          "all seasons",
+          20650,
+          "-5.97%",
+          "-7.87% \u2026 -4.04%",
+          "+3.30% (+3.18% \u2026 +3.41%)"
+        ],
+        [
+          "back_home_nation",
+          "2019+ holdout",
+          7501,
+          "-8.10%",
+          "-11.02% \u2026 -5.30%",
+          "+3.28% (+3.12% \u2026 +3.45%)"
+        ],
+        [
+          "fade_home_nation",
+          "all seasons",
+          20648,
+          "-4.93%",
+          "-6.50% \u2026 -3.27%",
+          "+2.56% (+2.46% \u2026 +2.67%)"
+        ],
+        [
+          "fade_home_nation",
+          "2019+ holdout",
+          7499,
+          "-3.86%",
+          "-6.31% \u2026 -1.24%",
+          "+2.52% (+2.40% \u2026 +2.64%)"
+        ],
+        [
+          "random_bet (control)",
+          "all seasons",
+          98699,
+          "-4.69%",
+          "",
+          "+2.81%"
+        ]
+      ]
+    }
+  ],
+  "charts": [
+    {
+      "key": "roi_by_strategy",
+      "title": "ROI of host-nation strategies",
+      "kind": "bar",
+      "x_label": "Strategy \u00b7 sample",
+      "y_label": "ROI",
+      "points": [
+        {
+          "x": "back \u00b7 all",
+          "y": -0.05967378934624699,
+          "low": -0.07868439978208233,
+          "high": -0.040356832639225196,
+          "count": 20650
+        },
+        {
+          "x": "back \u00b7 2019+",
+          "y": -0.08102764964671379,
+          "low": -0.11024373616851088,
+          "high": -0.05302230369284099,
+          "count": 7501
+        },
+        {
+          "x": "fade \u00b7 all",
+          "y": -0.049276792425416514,
+          "low": -0.06497520751404495,
+          "high": -0.0326788740192755,
+          "count": 20648
+        },
+        {
+          "x": "fade \u00b7 2019+",
+          "y": -0.038642539005200705,
+          "low": -0.0631106814241899,
+          "high": -0.012438992198959886,
+          "count": 7499
+        }
+      ]
+    }
+  ],
+  "verdict": "not_supported",
+  "conclusion": "Home players' win rate is indistinguishable from their market price (p = 0.759) and neither strategy beats the margin on the holdout."
+}

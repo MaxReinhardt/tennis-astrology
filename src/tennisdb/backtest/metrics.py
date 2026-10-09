@@ -112,27 +112,51 @@ def log_loss(bets: Sequence[SettledBet], epsilon: float = 1e-9) -> float:
     return total / len(bets)
 
 
+def bootstrap_ratio_interval(
+    numerators: Sequence[float],
+    denominators: Sequence[float],
+    draws: int,
+    seed: int,
+    confidence: float = 0.95,
+) -> tuple[float, float]:
+    """Percentile bootstrap CI on sum(numerators)/sum(denominators): resample pairs with
+    replacement `draws` times and take the (1-confidence)/2 and 1-(1-confidence)/2
+    percentiles. ROI is profit/stake; a per-bet mean such as CLV is value/1. Each draw is
+    one vectorised numpy pass, so this stays fast at tens of thousands of bets."""
+    if len(numerators) < 2:
+        return (0.0, 0.0)
+    rng = np.random.default_rng(seed)
+    top = np.asarray(numerators, dtype=float)
+    bottom = np.asarray(denominators, dtype=float)
+    count = len(top)
+    resampled = np.empty(draws)
+    for i in range(draws):
+        sample = rng.integers(0, count, size=count)
+        total = bottom[sample].sum()
+        resampled[i] = top[sample].sum() / total if total else 0.0
+    tail = (1.0 - confidence) / 2.0
+    low, high = np.quantile(resampled, [tail, 1.0 - tail])
+    return float(low), float(high)
+
+
 def bootstrap_roi_interval(
     bets: Sequence[SettledBet], draws: int, seed: int, confidence: float = 0.95
 ) -> tuple[float, float]:
-    """Percentile bootstrap CI on ROI: resample bets with replacement `draws` times
-    and take the (1-confidence)/2 and 1-(1-confidence)/2 percentiles of the resampled
-    ROI. Each draw is one vectorised numpy pass over all bets, so this stays fast even
-    at tens of thousands of bets."""
-    if len(bets) < 2:
-        return (0.0, 0.0)
-    rng = np.random.default_rng(seed)
-    stakes = np.array([bet.stake for bet in bets])
-    profits = np.array([bet.profit for bet in bets])
-    count = len(bets)
-    resampled_roi = np.empty(draws)
-    for i in range(draws):
-        sample = rng.integers(0, count, size=count)
-        turnover = stakes[sample].sum()
-        resampled_roi[i] = profits[sample].sum() / turnover if turnover else 0.0
-    tail = (1.0 - confidence) / 2.0
-    low, high = np.quantile(resampled_roi, [tail, 1.0 - tail])
-    return float(low), float(high)
+    return bootstrap_ratio_interval(
+        [bet.profit for bet in bets], [bet.stake for bet in bets], draws, seed, confidence
+    )
+
+
+def bootstrap_clv_interval(
+    bets: Sequence[SettledBet], draws: int, seed: int, confidence: float = 0.95
+) -> tuple[float, float]:
+    return bootstrap_ratio_interval(
+        [bet.fill_price / bet.consensus_price - 1.0 for bet in bets],
+        [1.0] * len(bets),
+        draws,
+        seed,
+        confidence,
+    )
 
 
 def ruin_probability(

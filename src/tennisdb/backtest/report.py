@@ -15,6 +15,7 @@ from pathlib import Path
 
 from tennisdb import config
 from tennisdb.backtest import metrics as metric_functions
+from tennisdb.backtest.charts import ChartSeries, build_charts
 from tennisdb.backtest.domain import EquityPoint, SettledBet
 from tennisdb.backtest.metrics import BacktestMetrics
 from tennisdb.backtest.request import BacktestRequest
@@ -63,6 +64,9 @@ class BacktestResult:
     bets: tuple[SettledBet, ...]
     metrics: BacktestMetrics
 
+    def charts(self) -> tuple[ChartSeries, ...]:
+        return build_charts(self.bets, self.request.starting_bankroll)
+
     def summary_lines(self) -> list[str]:
         headline = (
             f"backtest {self.run_id}: {self.request.strategy} on {self.matches_seen} "
@@ -107,6 +111,7 @@ class BacktestResult:
                 {"match_date": point.match_date.isoformat(), "bankroll": point.bankroll}
                 for point in self.equity_curve
             ],
+            "charts": [chart.to_dict() for chart in self.charts()],
         }
 
 
@@ -164,6 +169,9 @@ def write_artifacts(result: BacktestResult, directory: Path = config.BACKTESTS_D
     run_directory.mkdir(parents=True, exist_ok=True)
     (run_directory / "result.json").write_text(
         json.dumps(result.to_dict(), indent=2, default=str), encoding="utf-8"
+    )
+    (run_directory / "charts.json").write_text(
+        json.dumps([chart.to_dict() for chart in result.charts()]), encoding="utf-8"
     )
     _write_csv(
         run_directory / "equity_curve.csv",

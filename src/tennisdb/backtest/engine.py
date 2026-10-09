@@ -66,4 +66,5 @@ def _settle(
         profit=profit,
         won=won,
         bankroll_after=bankroll + profit,
+        surface=opportunity.surface,
     )
