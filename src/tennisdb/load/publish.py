@@ -97,8 +97,40 @@ EDITION_GEO = CanonicalTable(
     ("edition_id", "host_city", "host_country_ioc"),
     schema="analytics",
 )
+SERVE_FORM = CanonicalTable(
+    "serve_form",
+    (
+        "match_id",
+        "p1_serve_matches_available", "p2_serve_matches_available",
+        "p1_ace_rate_3", "p1_ace_rate_5", "p1_ace_rate_delta_consec", "p1_ace_rate_delta_trend",
+        "p2_ace_rate_3", "p2_ace_rate_5", "p2_ace_rate_delta_consec", "p2_ace_rate_delta_trend",
+        "p1_df_rate_3", "p1_df_rate_5", "p1_df_rate_delta_consec", "p1_df_rate_delta_trend",
+        "p2_df_rate_3", "p2_df_rate_5", "p2_df_rate_delta_consec", "p2_df_rate_delta_trend",
+        "p1_first_won_pct_2", "p1_first_won_pct_5",
+        "p1_first_won_pct_delta_consec", "p1_first_won_pct_delta_trend",
+        "p2_first_won_pct_2", "p2_first_won_pct_5",
+        "p2_first_won_pct_delta_consec", "p2_first_won_pct_delta_trend",
+        "p1_second_won_pct_2", "p1_second_won_pct_5",
+        "p1_second_won_pct_delta_consec", "p1_second_won_pct_delta_trend",
+        "p2_second_won_pct_2", "p2_second_won_pct_5",
+        "p2_second_won_pct_delta_consec", "p2_second_won_pct_delta_trend",
+        "p1_bp_saved_pct_2", "p1_bp_saved_pct_5",
+        "p1_bp_saved_pct_delta_consec", "p1_bp_saved_pct_delta_trend",
+        "p2_bp_saved_pct_2", "p2_bp_saved_pct_5",
+        "p2_bp_saved_pct_delta_consec", "p2_bp_saved_pct_delta_trend",
+        "p1_bp_faced_per_game_2", "p1_bp_faced_per_game_5",
+        "p1_bp_faced_per_game_delta_consec", "p1_bp_faced_per_game_delta_trend",
+        "p2_bp_faced_per_game_2", "p2_bp_faced_per_game_5",
+        "p2_bp_faced_per_game_delta_consec", "p2_bp_faced_per_game_delta_trend",
+        "p1_sv_games_2", "p1_sv_games_5",
+        "p1_sv_games_delta_consec", "p1_sv_games_delta_trend",
+        "p2_sv_games_2", "p2_sv_games_5",
+        "p2_sv_games_delta_consec", "p2_sv_games_delta_trend",
+    ),
+    schema="analytics",
+)
 # Feature tables carry no foreign keys, so truncation order is irrelevant.
-FEATURE_TABLES = (ELO_PRE, FORM, MARKET, PLAYER_ASTRO, EDITION_GEO)
+FEATURE_TABLES = (ELO_PRE, FORM, SERVE_FORM, MARKET, PLAYER_ASTRO, EDITION_GEO)
 
 PUBLISH_STEP = "publish:supabase"
 FEATURE_PUBLISH_STEP = "publish:features"

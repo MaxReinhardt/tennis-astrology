@@ -1,0 +1,72 @@
+-- Rolling pre-match serve form (M6): each player's ace/DF/serve-point rates over
+-- their last few matches *that recorded a serve line* (tennis.match_stats is sparse,
+-- so "last N" means last N stat-carrying matches, never last N matches played), plus
+-- the change since the previous stat-carrying match and the short-vs-long-window
+-- trend. Written in the DuckDB/Postgres common SQL subset and applied to both targets
+-- by scripts/migrate.py; tracked in tennis.schema_migrations — never edit after it has
+-- been applied, add a new numbered migration instead.
+-- Derived and rebuildable by `build_db.py --features`; carries no foreign keys for the
+-- same reason as 004_features.sql: the builder DELETEs + INSERTs wholesale, and
+-- publish truncates analytics.* independently of the tennis.* foreign-key ordering.
+
+CREATE TABLE IF NOT EXISTS analytics.serve_form (
+  match_id                          TEXT PRIMARY KEY,
+  p1_serve_matches_available        INTEGER NOT NULL,
+  p2_serve_matches_available        INTEGER NOT NULL,
+  p1_ace_rate_3                     DOUBLE PRECISION,
+  p1_ace_rate_5                     DOUBLE PRECISION,
+  p1_ace_rate_delta_consec          DOUBLE PRECISION,
+  p1_ace_rate_delta_trend           DOUBLE PRECISION,
+  p2_ace_rate_3                     DOUBLE PRECISION,
+  p2_ace_rate_5                     DOUBLE PRECISION,
+  p2_ace_rate_delta_consec          DOUBLE PRECISION,
+  p2_ace_rate_delta_trend           DOUBLE PRECISION,
+  p1_df_rate_3                      DOUBLE PRECISION,
+  p1_df_rate_5                      DOUBLE PRECISION,
+  p1_df_rate_delta_consec           DOUBLE PRECISION,
+  p1_df_rate_delta_trend            DOUBLE PRECISION,
+  p2_df_rate_3                      DOUBLE PRECISION,
+  p2_df_rate_5                      DOUBLE PRECISION,
+  p2_df_rate_delta_consec           DOUBLE PRECISION,
+  p2_df_rate_delta_trend            DOUBLE PRECISION,
+  p1_first_won_pct_2                DOUBLE PRECISION,
+  p1_first_won_pct_5                DOUBLE PRECISION,
+  p1_first_won_pct_delta_consec     DOUBLE PRECISION,
+  p1_first_won_pct_delta_trend      DOUBLE PRECISION,
+  p2_first_won_pct_2                DOUBLE PRECISION,
+  p2_first_won_pct_5                DOUBLE PRECISION,
+  p2_first_won_pct_delta_consec     DOUBLE PRECISION,
+  p2_first_won_pct_delta_trend      DOUBLE PRECISION,
+  p1_second_won_pct_2               DOUBLE PRECISION,
+  p1_second_won_pct_5               DOUBLE PRECISION,
+  p1_second_won_pct_delta_consec    DOUBLE PRECISION,
+  p1_second_won_pct_delta_trend     DOUBLE PRECISION,
+  p2_second_won_pct_2               DOUBLE PRECISION,
+  p2_second_won_pct_5               DOUBLE PRECISION,
+  p2_second_won_pct_delta_consec    DOUBLE PRECISION,
+  p2_second_won_pct_delta_trend     DOUBLE PRECISION,
+  p1_bp_saved_pct_2                 DOUBLE PRECISION,
+  p1_bp_saved_pct_5                 DOUBLE PRECISION,
+  p1_bp_saved_pct_delta_consec      DOUBLE PRECISION,
+  p1_bp_saved_pct_delta_trend       DOUBLE PRECISION,
+  p2_bp_saved_pct_2                 DOUBLE PRECISION,
+  p2_bp_saved_pct_5                 DOUBLE PRECISION,
+  p2_bp_saved_pct_delta_consec      DOUBLE PRECISION,
+  p2_bp_saved_pct_delta_trend       DOUBLE PRECISION,
+  p1_bp_faced_per_game_2            DOUBLE PRECISION,
+  p1_bp_faced_per_game_5            DOUBLE PRECISION,
+  p1_bp_faced_per_game_delta_consec DOUBLE PRECISION,
+  p1_bp_faced_per_game_delta_trend  DOUBLE PRECISION,
+  p2_bp_faced_per_game_2            DOUBLE PRECISION,
+  p2_bp_faced_per_game_5            DOUBLE PRECISION,
+  p2_bp_faced_per_game_delta_consec DOUBLE PRECISION,
+  p2_bp_faced_per_game_delta_trend  DOUBLE PRECISION,
+  p1_sv_games_2                     DOUBLE PRECISION,
+  p1_sv_games_5                     DOUBLE PRECISION,
+  p1_sv_games_delta_consec          DOUBLE PRECISION,
+  p1_sv_games_delta_trend           DOUBLE PRECISION,
+  p2_sv_games_2                     DOUBLE PRECISION,
+  p2_sv_games_5                     DOUBLE PRECISION,
+  p2_sv_games_delta_consec          DOUBLE PRECISION,
+  p2_sv_games_delta_trend           DOUBLE PRECISION
+);

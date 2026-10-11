@@ -26,7 +26,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--features",
         action="store_true",
-        help="build the analytics feature tables (elo, form, market, astro)",
+        help="build the analytics feature tables (elo, form, serve_form, market, astro)",
     )
     parser.add_argument(
         "--quality",

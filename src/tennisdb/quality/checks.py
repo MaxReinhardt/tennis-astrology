@@ -17,6 +17,7 @@ import duckdb
 import yaml
 
 from tennisdb import config
+from tennisdb.features.serve_form import BOUNDED_RATE_COLUMNS
 
 WAIVERS_PATH = Path(__file__).with_name("waivers.yaml")
 REPORT_PATH = config.QUALITY_DIR / "quality_report.json"
@@ -288,5 +289,33 @@ CHECKS: tuple[Check, ...] = (
             "- (SELECT avg(overround) FROM tennis.odds_implied WHERE bookmaker = 'B365')"
         ),
         high=0.0,
+    ),
+    ViolationCheck(
+        name="serve_form_covers_every_match",
+        scope="serve_form",
+        offenders=(
+            "SELECT m.match_id FROM tennis.matches_model m WHERE NOT EXISTS "
+            "(SELECT 1 FROM analytics.serve_form s WHERE s.match_id = m.match_id)"
+        ),
+        population="SELECT count(*) FROM tennis.matches",
+    ),
+    ViolationCheck(
+        name="serve_form_no_features_before_a_players_first_recorded_match",
+        scope="serve_form",
+        offenders=(
+            "SELECT match_id FROM analytics.serve_form WHERE "
+            "(p1_serve_matches_available = 0 AND p1_ace_rate_5 IS NOT NULL) OR "
+            "(p2_serve_matches_available = 0 AND p2_ace_rate_5 IS NOT NULL)"
+        ),
+        population="SELECT count(*) FROM analytics.serve_form",
+    ),
+    ViolationCheck(
+        name="serve_form_rates_within_unit_interval",
+        scope="serve_form",
+        offenders=(
+            "SELECT match_id FROM analytics.serve_form WHERE "
+            + " OR ".join(f"NOT ({column} BETWEEN 0 AND 1)" for column in BOUNDED_RATE_COLUMNS)
+        ),
+        population="SELECT count(*) FROM analytics.serve_form",
     ),
 )
