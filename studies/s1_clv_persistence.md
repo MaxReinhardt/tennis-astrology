@@ -22,6 +22,8 @@ Closing prices are the sharpest estimate of true probability, so beating them is
 
 <!-- generated:results -->
 
+> **In plain words:** We rate every player with Elo (a score that rises with wins and falls with losses) and bet whenever our rating likes a player clearly more than the bookmakers do. We then check whether those bets got better odds than the final pre-match odds, compared with simply betting at random. The better odds seen in the raw numbers turn out to come from the bookmaker we place bets with, not from the rating.
+
 **Verdict: not supported** — EloValue's CLV does not exceed a random-bet control with the same fills: the positive raw CLV comes from the fill book's tighter prices, not from edge.
 
 #### In-sample tuning grid

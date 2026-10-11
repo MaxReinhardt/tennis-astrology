@@ -15,14 +15,19 @@ which the web UI reads.
 ## Adding a study
 
 1. Create `src/tennisdb/research/studies/<id>.py` with a class exposing `study_id`, `title`,
-   a complete `Hypothesis`, and `run(context) -> StudyResult`. Use only
+   a complete `Hypothesis`, a `plain = PlainSummary(title, summary)` in everyday language
+   (shown above the hypothesis in the UI; never edit the pre-registered text to simplify it),
+   and `run(context) -> StudyResult`. Use only
    `context.backtests` (any `BacktestRequest`) and `context.cross_section` (market-relative
    cohort outcomes) — never import a database.
 2. Register it in `STUDIES` in `src/tennisdb/research/studies/__init__.py`.
 3. Add its verdict logic to `tests/test_m8_studies.py` against the fake context.
 4. Run it; commit the generated document and `results/`.
 
-New *strategies* go in `src/tennisdb/backtest/strategies/` plus one entry in `STRATEGIES`;
+New *strategies* go in `src/tennisdb/backtest/strategies/` plus one entry in `STRATEGIES`
+(every strategy and parameter needs a plain-language `label` and `description`, which the UI
+shows as dropdown text and tooltips; questions no strategy can express arrive as
+`strategy-request` GitHub issues);
 the request schema, the CLI, the API and the UI pick them up automatically.
 
 | Study | Question | Verdict |

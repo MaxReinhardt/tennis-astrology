@@ -6,10 +6,12 @@ system prompt is the engine's own catalog, so it cannot offer what the engine ca
 
 import json
 from dataclasses import dataclass
+from enum import StrEnum
 from typing import Protocol
 
 from tennisdb.backtest.catalog import catalog
 from tennisdb.backtest.request import BacktestRequest, InvalidBacktestRequest
+from tennisdb.strategy_requests.domain import StrategyProposal
 
 MODEL = "claude-opus-5"
 MAX_ATTEMPTS = 2
@@ -23,18 +25,46 @@ _RESPONSE_SCHEMA = {
             "description": "One or two plain sentences: what you will test and any "
             "assumption or approximation you made.",
         },
+        "coverage": {
+            "type": "string",
+            "enum": ["exact", "approximate", "unsupported"],
+            "description": "How well the catalog can express the question.",
+        },
+        "strategy_proposals": {
+            "type": "array",
+            "maxItems": 1,
+            "description": "One proposed new strategy when coverage is unsupported, else empty.",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "title": {"type": "string", "description": "Short name, under 80 characters."},
+                    "rule": {
+                        "type": "string",
+                        "description": "The betting rule in plain words: who to bet on and when.",
+                    },
+                    "data_needed": {
+                        "type": "string",
+                        "description": "Data the rule needs that may not be in the catalog.",
+                    },
+                },
+                "required": ["title", "rule", "data_needed"],
+                "additionalProperties": False,
+            },
+        },
         "request_json": {
             "type": "string",
             "description": "A JSON object string: a BacktestRequest.",
         },
     },
-    "required": ["interpretation", "request_json"],
+    "required": ["interpretation", "coverage", "strategy_proposals", "request_json"],
     "additionalProperties": False,
 }
 
 _INSTRUCTIONS = """\
 You translate a question about tennis betting into one backtest request for an engine.
-Reply with `interpretation` and `request_json` (a BacktestRequest as a JSON string).
+Reply with `interpretation`, `coverage`, `strategy_proposals` and `request_json`
+(a BacktestRequest as a JSON string). Write `interpretation` for readers who know nothing
+about betting: no jargon without a few plain words of explanation.
 
 Rules:
 - Use only strategies, stake rules and parameters listed in the catalog below.
@@ -43,8 +73,13 @@ Rules:
   stake_parameters {"amount": 10} and starting_bankroll 1000000, so a small bankroll
   cannot go bust and cut the sample short.
 - "Home nation" / "host country" questions use back_home_nation or fade_home_nation.
-- If the question cannot be expressed exactly, run the closest request and say in
+- `coverage` is "exact" when the catalog expresses the question as asked, "approximate"
+  when only a filter or parameter had to be adjusted, and "unsupported" when the core
+  selection idea (who to bet on, and why) is missing from the strategy list.
+- If the question cannot be expressed exactly, still run the closest request and say in
   `interpretation` what you changed. Never invent fields.
+- When coverage is "unsupported", put exactly one entry in `strategy_proposals` describing
+  the missing strategy; otherwise leave `strategy_proposals` empty.
 
 Catalog:
 """
@@ -58,10 +93,18 @@ class TranslationFailedError(RuntimeError):
     pass
 
 
+class Coverage(StrEnum):
+    EXACT = "exact"
+    APPROXIMATE = "approximate"
+    UNSUPPORTED = "unsupported"
+
+
 @dataclass(frozen=True)
 class Translation:
     interpretation: str
     request: BacktestRequest
+    coverage: Coverage = Coverage.EXACT
+    proposals: tuple[StrategyProposal, ...] = ()
 
 
 class QuestionTranslator(Protocol):
@@ -89,6 +132,8 @@ class ClaudeQuestionTranslator:
                 return Translation(
                     payload["interpretation"],
                     BacktestRequest.from_dict(json.loads(payload["request_json"])),
+                    Coverage(payload["coverage"]),
+                    tuple(StrategyProposal(**item) for item in payload["strategy_proposals"]),
                 )
             except (InvalidBacktestRequest, ValueError, KeyError, TypeError) as error:
                 last_error = str(error)

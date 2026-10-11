@@ -66,6 +66,7 @@ class FractionalKellyStake:
 @dataclass(frozen=True)
 class StakeDefinition:
     name: str
+    label: str
     description: str
     factory: Callable[[Mapping[str, float]], StakingStrategy]
     parameters: tuple[ParameterSpec, ...]
@@ -86,32 +87,69 @@ def _build_kelly(parameters: Mapping[str, float]) -> FractionalKellyStake:
 STAKE_RULES: dict[str, StakeDefinition] = {
     "flat": StakeDefinition(
         name="flat",
-        description="Bet a fixed currency amount on every signal.",
+        label="Same amount every bet",
+        description="Risk the same fixed amount of money on every bet, however confident we are.",
         factory=_build_flat,
         parameters=(
             ParameterSpec(
-                "amount", "number", 10.0, 0.0, None, "stake per bet, in bankroll currency"
+                "amount",
+                "Amount per bet",
+                "number",
+                10.0,
+                0.0,
+                None,
+                "How much money is risked on each bet, in the same currency as the starting money.",
             ),
         ),
     ),
     "fixed_fraction": StakeDefinition(
         name="fixed_fraction",
-        description="Bet a fixed fraction of the current bankroll on every signal.",
+        label="Fixed share of current money",
+        description=(
+            "Risk the same percentage of the money we currently have on every bet, so bets "
+            "grow after wins and shrink after losses."
+        ),
         factory=_build_fixed_fraction,
         parameters=(
             ParameterSpec(
-                "fraction", "number", 0.01, 0.0, 1.0, "fraction of bankroll staked per bet"
+                "fraction",
+                "Share of money per bet",
+                "number",
+                0.01,
+                0.0,
+                1.0,
+                "0.01 means 1% of the current money is risked on each bet.",
             ),
         ),
     ),
     "kelly": StakeDefinition(
         name="kelly",
-        description="Fractional Kelly: size by edge over the price taken, capped.",
+        label="Kelly: bet more when the edge is bigger",
+        description=(
+            "A formula (the Kelly criterion) that risks more when our estimated chance beats "
+            "the odds by a lot and nothing when it does not. Usually scaled down because "
+            "the full formula is very aggressive."
+        ),
         factory=_build_kelly,
         parameters=(
-            ParameterSpec("multiplier", "number", 0.25, 0.0, 1.0, "fraction of full Kelly to bet"),
             ParameterSpec(
-                "cap", "number", 0.05, 0.0, 1.0, "maximum bankroll fraction staked per bet"
+                "multiplier",
+                "Fraction of full Kelly",
+                "number",
+                0.25,
+                0.0,
+                1.0,
+                "0.25 bets a quarter of what the full formula suggests, which is much safer.",
+            ),
+            ParameterSpec(
+                "cap",
+                "Largest share per bet",
+                "number",
+                0.05,
+                0.0,
+                1.0,
+                "Safety limit: never risk more than this share of the current money on "
+                "one bet. 0.05 is 5%.",
             ),
         ),
     ),

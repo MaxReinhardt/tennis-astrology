@@ -20,6 +20,7 @@ class Strategy(Protocol):
 @dataclass(frozen=True)
 class ParameterSpec:
     name: str
+    label: str
     kind: str  # 'number' | 'integer'
     default: float
     minimum: float | None
@@ -30,6 +31,7 @@ class ParameterSpec:
 @dataclass(frozen=True)
 class StrategyDefinition:
     name: str
+    label: str
     description: str
     factory: Callable[[Mapping[str, float]], Strategy]
     parameters: tuple[ParameterSpec, ...]

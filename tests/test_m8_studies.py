@@ -140,3 +140,56 @@ def test_study_result_serialises_to_json_ready_dict():
 
     assert payload["verdict"] in {"supported", "not_supported", "inconclusive"}
     assert payload["tables"] and payload["charts"]
+
+
+def test_every_registered_study_has_a_plain_language_title_and_summary():
+    for study_id, study in STUDIES.items():
+        assert study.plain.title.strip(), study_id
+        assert study.plain.summary.strip(), study_id
+
+
+def test_study_result_dict_carries_the_plain_title_and_summary():
+    outcomes = {"host_nation": [_market_matched("home")]}
+    study = STUDIES["s4_host_nation"]
+
+    payload = study.run(_context(outcomes=outcomes)).to_dict()
+
+    assert payload["plain_title"] == study.plain.title
+    assert payload["plain_summary"] == study.plain.summary
+
+
+def test_results_block_opens_with_the_plain_summary(tmp_path):
+    from tennisdb.research.documents import render_results_block
+
+    study = STUDIES["s4_host_nation"]
+    result = study.run(_context(outcomes={"host_nation": [_market_matched("home")]}))
+
+    block = render_results_block(result, charts_directory=None)
+
+    assert f"> **In plain words:** {study.plain.summary}" in block
+
+
+def test_study_index_entry_carries_the_plain_title_and_summary(tmp_path):
+    from tennisdb.research.artifacts import write_study_artifacts
+
+    study = STUDIES["s4_host_nation"]
+    result = study.run(_context(outcomes={"host_nation": [_market_matched("home")]}))
+
+    write_study_artifacts(
+        study, result, studies_directory=tmp_path, with_plots=False,
+        api_directory=tmp_path / "api",
+    )  # fmt: skip
+
+    import json
+
+    entry = json.loads((tmp_path / "results" / "index.json").read_text())[0]
+    assert entry["plain_title"] == study.plain.title
+    assert entry["plain_summary"] == study.plain.summary
+
+
+def test_scaffolded_preregistration_does_not_include_the_plain_layer():
+    from tennisdb.research.documents import scaffold_document
+
+    study = STUDIES["s4_host_nation"]
+
+    assert study.plain.summary not in scaffold_document(study)

@@ -9,6 +9,8 @@
     "in_sample": "none \u2014 nothing is tuned",
     "out_of_sample": "seasons >= 2019, reported alongside the full sample"
   },
+  "plain_title": "Do players win more at home than the odds expect?",
+  "plain_summary": "We check whether players from the country hosting a tournament win more or less often than the bookmakers' odds imply, and whether betting on them (or against them) would have made money.",
   "tables": [
     {
       "title": "Home player vs market (matches with exactly one home player)",

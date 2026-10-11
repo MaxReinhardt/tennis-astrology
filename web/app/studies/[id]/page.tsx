@@ -4,15 +4,16 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Chart } from "@/components/Chart";
+import { GlossaryHeader, GlossaryText } from "@/components/GlossaryText";
 import { VerdictBadge } from "@/components/VerdictBadge";
 import { api, type Study } from "@/lib/api";
 
 const HYPOTHESIS_LABELS: [string, string][] = [
-  ["rationale", "Economic rationale"],
-  ["metric", "Pre-registered metric"],
-  ["threshold", "Decision rule"],
-  ["in_sample", "In-sample (tuning allowed)"],
-  ["out_of_sample", "Out-of-sample (touched once)"],
+  ["rationale", "Why it might work"],
+  ["metric", "What is measured"],
+  ["threshold", "How it is judged"],
+  ["in_sample", "Older seasons (tuning allowed)"],
+  ["out_of_sample", "Unseen seasons (looked at once)"],
 ];
 
 export default function StudyPage() {
@@ -32,20 +33,22 @@ export default function StudyPage() {
       <Link href="/studies" className="text-sm text-[var(--ink-2)] hover:underline">← All studies</Link>
       <header className="space-y-2">
         <div className="flex items-start justify-between gap-3">
-          <h1 className="text-xl font-semibold">{study.title}</h1>
+          <h1 className="text-xl font-semibold">{study.plain_title}</h1>
           <VerdictBadge verdict={study.verdict} />
         </div>
-        <p className="text-sm">{study.conclusion}</p>
+        <p className="text-xs text-[var(--ink-3)]">{study.title}</p>
+        <p className="text-sm"><GlossaryText text={study.plain_summary} /></p>
+        <p className="text-sm"><strong>Result:</strong> <GlossaryText text={study.conclusion} /></p>
       </header>
 
       <section className="space-y-2">
-        <h2 className="text-sm font-semibold">Hypothesis</h2>
-        <p className="text-sm">{study.hypothesis.statement}</p>
+        <h2 className="text-sm font-semibold">The exact hypothesis, as written before the results</h2>
+        <p className="text-sm"><GlossaryText text={study.hypothesis.statement} /></p>
         <dl className="space-y-1 text-sm">
           {HYPOTHESIS_LABELS.map(([key, label]) => (
             <div key={key}>
               <dt className="inline text-[var(--ink-3)]">{label}: </dt>
-              <dd className="inline">{study.hypothesis[key]}</dd>
+              <dd className="inline"><GlossaryText text={study.hypothesis[key]} /></dd>
             </div>
           ))}
         </dl>
@@ -53,12 +56,12 @@ export default function StudyPage() {
 
       {study.tables.map((table) => (
         <section key={table.title} className="space-y-2">
-          <h2 className="text-sm font-semibold">{table.title}</h2>
+          <h2 className="text-sm font-semibold"><GlossaryText text={table.title} /></h2>
           <div className="overflow-x-auto">
             <table className="w-full text-sm tabular-nums">
               <thead>
                 <tr className="border-b border-[var(--border)] text-left text-xs text-[var(--ink-3)]">
-                  {table.columns.map((column) => <th key={column} className="py-1 pr-4 font-medium">{column}</th>)}
+                  {table.columns.map((column) => <th key={column} className="py-1 pr-4 font-medium"><GlossaryHeader text={column} /></th>)}
                 </tr>
               </thead>
               <tbody>

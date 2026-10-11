@@ -22,6 +22,8 @@ None: the claim has no causal mechanism. It is the harness's null demonstrator â
 
 <!-- generated:results -->
 
+> **In plain words:** We check whether players born under a given star sign, element or month win more often than the odds predict. There is no reason this should work, so it shows how often pure chance looks like a pattern when many groups are tested.
+
 **Verdict: not supported** â€” 1 of 28 cohorts have raw p < 0.05 (about 1.4 expected by chance); none survives correction (smallest Bonferroni p = 0.790).
 
 #### 28 cohort tests against the market

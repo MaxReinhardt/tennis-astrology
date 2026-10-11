@@ -15,10 +15,18 @@ export type ChartSeries = {
   points: ChartPoint[];
 };
 
-export type Metric = { key: string; label: string; unit: string; value: number; formatted: string };
+export type Metric = {
+  key: string;
+  label: string;
+  unit: string;
+  description: string;
+  value: number;
+  formatted: string;
+};
 
 export type ParameterSpec = {
   name: string;
+  label: string;
   type: "number" | "integer";
   default: number;
   minimum: number | null;
@@ -26,7 +34,7 @@ export type ParameterSpec = {
   description: string;
 };
 
-export type Definition = { name: string; description: string; parameters: ParameterSpec[] };
+export type Definition = { name: string; label: string; description: string; parameters: ParameterSpec[] };
 export type Catalog = { strategies: Definition[]; stake_rules: Definition[] };
 
 export type Filters = {
@@ -56,12 +64,22 @@ export type BacktestResponse = {
   charts: ChartSeries[];
 };
 
-export type Health = { source: string; translation_enabled: boolean };
-export type Translation = { interpretation: string; request: BacktestRequest };
+export type Health = { source: string; translation_enabled: boolean; strategy_requests_enabled: boolean };
+export type Coverage = "exact" | "approximate" | "unsupported";
+export type StrategyProposal = { title: string; rule: string; data_needed: string };
+export type Translation = {
+  interpretation: string;
+  request: BacktestRequest;
+  coverage: Coverage;
+  proposals: StrategyProposal[];
+};
+export type FilingOutcome = { url: string; number: number; already_existed: boolean };
 
 export type StudySummary = {
   study_id: string;
   title: string;
+  plain_title: string;
+  plain_summary: string;
   verdict: Verdict;
   conclusion: string;
   statement: string;
@@ -95,6 +113,8 @@ export const api = {
   catalog: () => request<Catalog>("/api/catalog"),
   backtest: (payload: unknown) => request<BacktestResponse>("/api/backtest", payload),
   translate: (question: string) => request<Translation>("/api/translate", { question }),
+  requestStrategy: (question: string, proposal: StrategyProposal) =>
+    request<FilingOutcome>("/api/strategy-requests", { question, proposal }),
   studies: () => request<StudySummary[]>("/api/studies"),
   study: (id: string) => request<Study>(`/api/studies/${encodeURIComponent(id)}`),
 };

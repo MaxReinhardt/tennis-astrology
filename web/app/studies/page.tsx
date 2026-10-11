@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { GlossaryText } from "@/components/GlossaryText";
 import { VerdictBadge } from "@/components/VerdictBadge";
 import { api, type StudySummary } from "@/lib/api";
 
@@ -20,18 +21,19 @@ export default function StudiesPage() {
     <div className="space-y-4">
       <h1 className="text-xl font-semibold">Studies</h1>
       <p className="text-sm text-[var(--ink-2)]">
-        Each study states its hypothesis and decision rule before looking at results, tunes only on
-        seasons up to 2018, and is judged on 2019 onward.
+        Each study writes down its question and how it will be judged before looking at any results,
+        tunes only on seasons up to 2018, and is judged once on the unseen seasons from 2019 onward.
       </p>
       <ul className="space-y-3">
         {studies.map((study) => (
           <li key={study.study_id} className="rounded-lg border border-[var(--border)] bg-[var(--panel)] p-4">
             <div className="flex items-start justify-between gap-3">
-              <Link href={`/studies/${study.study_id}`} className="font-medium hover:underline">{study.title}</Link>
+              <Link href={`/studies/${study.study_id}`} className="font-medium hover:underline">{study.plain_title}</Link>
               <VerdictBadge verdict={study.verdict} />
             </div>
-            <p className="mt-1 text-sm text-[var(--ink-2)]">{study.statement}</p>
-            <p className="mt-2 text-sm">{study.conclusion}</p>
+            <p className="mt-1 text-xs text-[var(--ink-3)]">{study.title}</p>
+            <p className="mt-2 text-sm"><GlossaryText text={study.plain_summary} /></p>
+            <p className="mt-2 text-sm"><strong>Result:</strong> <GlossaryText text={study.conclusion} /></p>
           </li>
         ))}
       </ul>

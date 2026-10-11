@@ -1,5 +1,6 @@
 "use client";
 
+import { GlossaryText } from "./GlossaryText";
 import {
   Bar,
   BarChart,
@@ -125,7 +126,7 @@ export function Chart({ chart }: { chart: ChartSeries }) {
 
   return (
     <figure className="rounded-lg border border-[var(--border)] bg-[var(--panel)] p-4">
-      <figcaption className="mb-2 text-sm font-medium">{chart.title}</figcaption>
+      <figcaption className="mb-2 text-sm font-medium"><GlossaryText text={chart.title} /></figcaption>
       {chart.points.length === 0 ? (
         <p className="py-10 text-center text-sm text-[var(--ink-3)]">No data</p>
       ) : (

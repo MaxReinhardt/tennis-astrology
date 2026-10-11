@@ -9,6 +9,8 @@
     "in_sample": "seasons <= 2018: pick \u03b8 from (0.02, 0.04, 0.06, 0.08, 0.1) with the highest CLV in excess of the control among grids with >= 300 bets",
     "out_of_sample": "seasons >= 2019, touched once, with the chosen \u03b8"
   },
+  "plain_title": "Can a player-rating model spot mispriced odds?",
+  "plain_summary": "We rate every player with Elo (a score that rises with wins and falls with losses) and bet whenever our rating likes a player clearly more than the bookmakers do. We then check whether those bets got better odds than the final pre-match odds, compared with simply betting at random. The better odds seen in the raw numbers turn out to come from the bookmaker we place bets with, not from the rating.",
   "tables": [
     {
       "title": "In-sample tuning grid",

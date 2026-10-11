@@ -48,6 +48,7 @@ def _refresh_index(results_directory: Path) -> None:
     entries = []
     for result_file in sorted(results_directory.glob("*/result.json")):
         payload = json.loads(result_file.read_text(encoding="utf-8"))
-        entries.append({key: payload[key] for key in ("study_id", "title", "verdict", "conclusion")}
+        keys = ("study_id", "title", "plain_title", "plain_summary", "verdict", "conclusion")
+        entries.append({key: payload[key] for key in keys}
                        | {"statement": payload["hypothesis"]["statement"]})  # fmt: skip
     (results_directory / INDEX_FILE).write_text(json.dumps(entries, indent=2), encoding="utf-8")

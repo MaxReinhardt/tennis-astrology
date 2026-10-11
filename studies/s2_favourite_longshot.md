@@ -22,6 +22,8 @@ Bettors overpay for longshots, so books can shade them harder; favourites are cl
 
 <!-- generated:results -->
 
+> **In plain words:** Bookmakers are thought to charge more on unlikely winners (long shots) than on likely ones. We bet on every match in each odds range and compare the average loss per bet on hard, clay and grass courts.
+
 **Verdict: supported** — Longshots lose more than favourites on every surface and no bucket is profitable.
 
 #### ROI by surface and price bucket

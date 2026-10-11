@@ -4,7 +4,7 @@ so the whole sample is the sample."""
 
 from tennisdb.backtest.charts import ChartSeries
 from tennisdb.research.context import StudyContext
-from tennisdb.research.protocol import FindingTable, Hypothesis, StudyResult, Verdict
+from tennisdb.research.protocol import FindingTable, Hypothesis, PlainSummary, StudyResult, Verdict
 from tennisdb.research.studies.common import MIN_BETS_FOR_A_CLAIM, percent, roi_point
 
 SURFACES = ("Hard", "Clay", "Grass")
@@ -22,6 +22,14 @@ BUCKETS = (
 class FavouriteLongshotStudy:
     study_id = "s2_favourite_longshot"
     title = "S2 · Favourite–longshot bias by surface and price"
+    plain = PlainSummary(
+        title="Are long-shot bets worse value than favourites?",
+        summary=(
+            "Bookmakers are thought to charge more on unlikely winners (long shots) than on "
+            "likely ones. We bet on every match in each odds range and compare the average "
+            "loss per bet on hard, clay and grass courts."
+        ),
+    )
     hypothesis = Hypothesis(
         statement=(
             "Expected value declines as the price lengthens: on every surface the shortest "
@@ -47,9 +55,7 @@ class FavouriteLongshotStudy:
         for surface in SURFACES:
             points = []
             for label, strategy, minimum, maximum in BUCKETS:
-                result = context.backtests.run(
-                    _request(strategy, minimum, maximum, surface)
-                )
+                result = context.backtests.run(_request(strategy, minimum, maximum, surface))
                 point = roi_point(label, result)
                 points.append(point)
                 rows.append((
@@ -70,7 +76,7 @@ class FavouriteLongshotStudy:
             tuple(rows),
         )
         return StudyResult(
-            self.study_id, self.title, self.hypothesis, (table,), tuple(charts),
+            self.study_id, self.title, self.hypothesis, self.plain, (table,), tuple(charts),
             verdict, conclusion,
         )  # fmt: skip
 
@@ -78,9 +84,7 @@ class FavouriteLongshotStudy:
 def _request(strategy: str, minimum: float, maximum: float, surface: str):
     from tennisdb.research.studies.common import flat_request
 
-    return flat_request(
-        strategy, {"min_price": minimum, "max_price": maximum}, surfaces=[surface]
-    )
+    return flat_request(strategy, {"min_price": minimum, "max_price": maximum}, surfaces=[surface])
 
 
 def _verdict(bias_by_surface: dict[str, bool], exploitable: list[str]) -> tuple[Verdict, str]:

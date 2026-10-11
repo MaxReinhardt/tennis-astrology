@@ -9,6 +9,8 @@
     "in_sample": "none \u2014 descriptive, nothing is tuned",
     "out_of_sample": "none \u2014 the whole odds-era sample"
   },
+  "plain_title": "Are long-shot bets worse value than favourites?",
+  "plain_summary": "Bookmakers are thought to charge more on unlikely winners (long shots) than on likely ones. We bet on every match in each odds range and compare the average loss per bet on hard, clay and grass courts.",
   "tables": [
     {
       "title": "ROI by surface and price bucket",

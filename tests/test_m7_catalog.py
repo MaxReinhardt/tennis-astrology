@@ -92,3 +92,26 @@ def test_result_to_dict_is_json_serializable_with_every_metric_formatted():
 
     json.dumps(document)
     assert all(metric["formatted"] for metric in document["metrics"])
+
+
+def test_every_strategy_stake_rule_and_parameter_has_a_plain_label():
+    document = catalog()
+
+    definitions = [*document["strategies"], *document["stake_rules"]]
+    assert all(entry["label"].strip() for entry in definitions)
+    assert all(
+        parameter["label"].strip() for entry in definitions for parameter in entry["parameters"]
+    )
+
+
+def test_every_metric_has_a_plain_description():
+    assert all(spec.description.strip() for spec in METRIC_SPECS)
+    assert all(entry["description"].strip() for entry in catalog()["metrics"])
+
+
+def test_result_metrics_carry_their_description():
+    request = BacktestRequest.from_dict({"strategy": "random_bet"})
+
+    document = build_result(request, matches_seen=0, bets=[]).to_dict()
+
+    assert all(metric["description"] for metric in document["metrics"])

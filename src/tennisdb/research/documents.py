@@ -11,7 +11,10 @@ RESULTS_END = "<!-- /generated -->"
 
 
 def render_results_block(result: StudyResult, charts_directory: str | None) -> str:
-    lines = [RESULTS_START, "", f"**Verdict: {result.verdict.value.replace('_', ' ')}** — "
+    plain_summary = result.plain.summary
+    verdict = result.verdict.value.replace("_", " ")
+    lines = [RESULTS_START, "", f"> **In plain words:** {plain_summary}", "",
+             f"**Verdict: {verdict}** — "
              f"{result.conclusion}", ""]  # fmt: skip
     for table in result.tables:
         lines += [f"#### {table.title}", "", *_render_table(table), ""]

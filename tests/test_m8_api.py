@@ -12,12 +12,15 @@ from fastapi.testclient import TestClient
 from tennisdb.api.app import create_app
 from tennisdb.api.translation import (
     ClaudeQuestionTranslator,
+    Coverage,
     Translation,
     TranslationFailedError,
     TranslationRefusedError,
 )
 from tennisdb.backtest.domain import MatchEvent, MatchOpportunity
 from tennisdb.backtest.request import BacktestRequest
+from tennisdb.strategy_requests.domain import Issue, StrategyProposal
+from tennisdb.strategy_requests.file_request import FileStrategyRequest
 
 pytestmark = pytest.mark.m8
 
@@ -61,8 +64,24 @@ def studies_directory(tmp_path):
     return tmp_path
 
 
-def _client(studies_directory, translator=None, count=10):
-    return TestClient(create_app(_factory(count), translator, studies_directory, "fake"))
+class _FakeTracker:
+    def __init__(self, open_issues=()):
+        self.open_issues = list(open_issues)
+        self.opened = []
+
+    def find_open(self, title):
+        return tuple(issue for issue in self.open_issues if issue.title == title)
+
+    def open_issue(self, title, body, labels):
+        self.opened.append(title)
+        return Issue(f"https://github.com/o/r/issues/{len(self.opened)}", len(self.opened), title)
+
+
+def _client(studies_directory, translator=None, count=10, tracker=None):
+    file_strategy_request = None if tracker is None else FileStrategyRequest(tracker)
+    return TestClient(
+        create_app(_factory(count), translator, studies_directory, "fake", file_strategy_request)
+    )
 
 
 def test_catalog_lists_the_registered_strategies(studies_directory):
@@ -149,8 +168,22 @@ class _StubClaude:
         )
 
 
-def _reply(request: dict, interpretation="ok") -> str:
-    return json.dumps({"interpretation": interpretation, "request_json": json.dumps(request)})
+def _reply(request: dict, interpretation="ok", coverage="exact", proposals=()) -> str:
+    return json.dumps(
+        {
+            "interpretation": interpretation,
+            "coverage": coverage,
+            "strategy_proposals": list(proposals),
+            "request_json": json.dumps(request),
+        }
+    )
+
+
+_PROPOSAL = {
+    "title": "Fade five-set winners",
+    "rule": "Bet against a player whose previous match went five sets.",
+    "data_needed": "Sets played in each player's previous match.",
+}
 
 
 def test_translator_valid_reply_becomes_a_validated_request():
@@ -206,3 +239,130 @@ def test_service_requirements_are_a_subset_of_the_projects_pinned_dependencies()
     service = (config.PROJECT_ROOT / "src" / "requirements.txt").read_text().split()
 
     assert {re.split(r"[\[<>=]", dep)[0] for dep in service} <= declared
+
+
+def test_translator_exact_reply_has_exact_coverage_and_no_proposals():
+    client = _StubClaude(_reply({"strategy": "random_bet"}))
+
+    translation = ClaudeQuestionTranslator(client).translate("?")
+
+    assert translation.coverage is Coverage.EXACT and translation.proposals == ()
+
+
+def test_translator_unsupported_reply_carries_the_strategy_proposal():
+    reply = _reply({"strategy": "random_bet"}, coverage="unsupported", proposals=[_PROPOSAL])
+    client = _StubClaude(reply)
+
+    translation = ClaudeQuestionTranslator(client).translate("five-setters?")
+
+    assert translation.coverage is Coverage.UNSUPPORTED
+    assert translation.proposals == (StrategyProposal(**_PROPOSAL),)
+
+
+def test_translator_unknown_coverage_is_retried_with_the_error_fed_back():
+    client = _StubClaude(
+        _reply({"strategy": "random_bet"}, coverage="maybe"), _reply({"strategy": "random_bet"})
+    )
+
+    translation = ClaudeQuestionTranslator(client).translate("?")
+
+    assert translation.coverage is Coverage.EXACT
+    assert "maybe" in client.calls[1]["messages"][-1]["content"]
+
+
+def test_translator_instructions_tell_the_model_about_coverage_and_proposals():
+    client = _StubClaude(_reply({"strategy": "random_bet"}))
+
+    ClaudeQuestionTranslator(client).translate("?")
+
+    system_text = client.calls[0]["system"][0]["text"]
+    assert "unsupported" in system_text and "strategy_proposals" in system_text
+
+
+class _ProposingTranslator:
+    def translate(self, question):
+        request = BacktestRequest.from_dict({"strategy": "back_underdogs"})
+        return Translation(
+            "Closest run: underdogs.", request, Coverage.UNSUPPORTED,
+            (StrategyProposal(**_PROPOSAL),),
+        )  # fmt: skip
+
+
+def test_translate_response_includes_coverage_and_proposals(studies_directory):
+    response = _client(studies_directory, _ProposingTranslator()).post(
+        "/api/translate", json={"question": "five-setters?"}
+    )
+
+    body = response.json()
+    assert body["coverage"] == "unsupported" and body["proposals"] == [_PROPOSAL]
+
+
+def test_translate_response_for_a_covered_question_is_exact_with_no_proposals(studies_directory):
+    response = _client(studies_directory, _StubTranslator()).post(
+        "/api/translate", json={"question": "do underdogs pay?"}
+    )
+
+    assert response.json()["coverage"] == "exact" and response.json()["proposals"] == []
+
+
+def test_health_reports_whether_strategy_requests_are_enabled(studies_directory):
+    without = _client(studies_directory).get("/api/health").json()
+    with_tracker = _client(studies_directory, tracker=_FakeTracker()).get("/api/health").json()
+
+    assert without["strategy_requests_enabled"] is False
+    assert with_tracker["strategy_requests_enabled"] is True
+
+
+def _filing_payload(**overrides):
+    return {"question": "five-setters?", "proposal": _PROPOSAL | overrides}
+
+
+def test_strategy_request_without_a_tracker_is_503(studies_directory):
+    response = _client(studies_directory).post("/api/strategy-requests", json=_filing_payload())
+
+    assert response.status_code == 503
+
+
+def test_strategy_request_opens_an_issue_and_returns_its_link(studies_directory):
+    tracker = _FakeTracker()
+
+    response = _client(studies_directory, tracker=tracker).post(
+        "/api/strategy-requests", json=_filing_payload()
+    )
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "url": "https://github.com/o/r/issues/1", "number": 1, "already_existed": False,
+    }  # fmt: skip
+
+
+def test_strategy_request_for_an_existing_title_returns_that_issue(studies_directory):
+    existing = Issue(
+        "https://github.com/o/r/issues/5", 5, "Strategy request: Fade five-set winners"
+    )
+    tracker = _FakeTracker([existing])
+
+    response = _client(studies_directory, tracker=tracker).post(
+        "/api/strategy-requests", json=_filing_payload()
+    )
+
+    assert response.json()["already_existed"] is True and tracker.opened == []
+
+
+def test_strategy_request_with_an_overlong_title_is_a_422(studies_directory):
+    response = _client(studies_directory, tracker=_FakeTracker()).post(
+        "/api/strategy-requests", json=_filing_payload(title="t" * 500)
+    )
+
+    assert response.status_code == 422
+
+
+@pytest.mark.parametrize(
+    "payload", [{}, {"question": "q"}, {"question": "q", "proposal": {"title": "t"}}]
+)
+def test_strategy_request_with_a_malformed_payload_is_a_422(studies_directory, payload):
+    response = _client(studies_directory, tracker=_FakeTracker()).post(
+        "/api/strategy-requests", json=payload
+    )
+
+    assert response.status_code == 422

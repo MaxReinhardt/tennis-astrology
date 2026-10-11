@@ -2,6 +2,8 @@
   {
     "study_id": "s1_clv_persistence",
     "title": "S1 \u00b7 Does EloValue show positive CLV when ROI is noisy?",
+    "plain_title": "Can a player-rating model spot mispriced odds?",
+    "plain_summary": "We rate every player with Elo (a score that rises with wins and falls with losses) and bet whenever our rating likes a player clearly more than the bookmakers do. We then check whether those bets got better odds than the final pre-match odds, compared with simply betting at random. The better odds seen in the raw numbers turn out to come from the bookmaker we place bets with, not from the rating.",
     "verdict": "not_supported",
     "conclusion": "EloValue's CLV does not exceed a random-bet control with the same fills: the positive raw CLV comes from the fill book's tighter prices, not from edge.",
     "statement": "Bets placed when Elo disagrees with the closing market by at least \u03b8 beat the closing price by more than a random-bet control with the same fills, even though the ROI over the same bets cannot be distinguished from zero."
@@ -9,6 +11,8 @@
   {
     "study_id": "s2_favourite_longshot",
     "title": "S2 \u00b7 Favourite\u2013longshot bias by surface and price",
+    "plain_title": "Are long-shot bets worse value than favourites?",
+    "plain_summary": "Bookmakers are thought to charge more on unlikely winners (long shots) than on likely ones. We bet on every match in each odds range and compare the average loss per bet on hard, clay and grass courts.",
     "verdict": "supported",
     "conclusion": "Longshots lose more than favourites on every surface and no bucket is profitable.",
     "statement": "Expected value declines as the price lengthens: on every surface the shortest bucket has a higher ROI than the longest, and no bucket's ROI interval lies entirely above zero."
@@ -16,6 +20,8 @@
   {
     "study_id": "s3_zodiac_null",
     "title": "S3 \u00b7 Does a player's zodiac sign beat the market?",
+    "plain_title": "Do star signs predict who wins?",
+    "plain_summary": "We check whether players born under a given star sign, element or month win more often than the odds predict. There is no reason this should work, so it shows how often pure chance looks like a pattern when many groups are tested.",
     "verdict": "not_supported",
     "conclusion": "1 of 28 cohorts have raw p < 0.05 (about 1.4 expected by chance); none survives correction (smallest Bonferroni p = 0.790).",
     "statement": "At least one zodiac sign, element or birth month wins more often than its no-vig market price implies."
@@ -23,6 +29,8 @@
   {
     "study_id": "s4_host_nation",
     "title": "S4 \u00b7 Does backing or fading home-nation players make money?",
+    "plain_title": "Do players win more at home than the odds expect?",
+    "plain_summary": "We check whether players from the country hosting a tournament win more or less often than the bookmakers' odds imply, and whether betting on them (or against them) would have made money.",
     "verdict": "not_supported",
     "conclusion": "Home players' win rate is indistinguishable from their market price (p = 0.759) and neither strategy beats the margin on the holdout.",
     "statement": "Players from the tournament's host country win at a rate different from their no-vig market price, and backing or fading them earns a positive ROI."

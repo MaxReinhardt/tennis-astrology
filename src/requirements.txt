@@ -5,3 +5,4 @@ psycopg[binary]>=3.2
 numpy>=2.0
 pandas>=2.2
 python-dotenv>=1.0
+httpx>=0.27

@@ -31,6 +31,15 @@ class Hypothesis:
 
 
 @dataclass(frozen=True)
+class PlainSummary:
+    """Everyday-language framing shown next to a study. It sits beside the pre-registered
+    Hypothesis and never replaces it, so wording the protocol fixed stays untouched."""
+
+    title: str
+    summary: str
+
+
+@dataclass(frozen=True)
 class FindingTable:
     title: str
     columns: tuple[str, ...]
@@ -46,6 +55,7 @@ class StudyResult:
     study_id: str
     title: str
     hypothesis: Hypothesis
+    plain: PlainSummary
     tables: tuple[FindingTable, ...]
     charts: tuple[ChartSeries, ...]
     verdict: Verdict
@@ -62,6 +72,8 @@ class StudyResult:
             "study_id": self.study_id,
             "title": self.title,
             "hypothesis": vars(self.hypothesis),
+            "plain_title": self.plain.title,
+            "plain_summary": self.plain.summary,
             "tables": [table.to_dict() for table in self.tables],
             "charts": [chart.to_dict() for chart in self.charts],
             "verdict": self.verdict.value,
@@ -73,5 +85,6 @@ class Study(Protocol):
     study_id: str
     title: str
     hypothesis: Hypothesis
+    plain: PlainSummary
 
     def run(self, context: StudyContext) -> StudyResult: ...

@@ -87,9 +87,16 @@ def request_schema() -> dict:
                 "type": "number",
                 "minimum": 0.0,
                 "maximum": 1.0,
-                "description": "Fractional price haircut applied to every fill.",
+                "description": (
+                    "Fractional price haircut applied to every fill: 0.01 pays 1% worse "
+                    "odds than quoted, a stand-in for prices moving before the bet lands."
+                ),
             },
-            "starting_bankroll": {"type": "number", "exclusiveMinimum": 0.0},
+            "starting_bankroll": {
+                "type": "number",
+                "exclusiveMinimum": 0.0,
+                "description": "Money the simulation starts with, in the same currency as bets.",
+            },
             "bootstrap_draws": {"type": "integer", "minimum": 100, "maximum": 20_000},
             "random_seed": {"type": "integer"},
         },
@@ -99,6 +106,7 @@ def request_schema() -> dict:
 def _parameter_entry(spec: ParameterSpec) -> dict:
     return {
         "name": spec.name,
+        "label": spec.label,
         "type": spec.kind,
         "default": spec.default,
         "minimum": spec.minimum,
@@ -111,6 +119,7 @@ def _strategy_entry(name: str) -> dict:
     definition = STRATEGIES[name]
     return {
         "name": definition.name,
+        "label": definition.label,
         "description": definition.description,
         "parameters": [_parameter_entry(spec) for spec in definition.parameters],
     }
@@ -120,13 +129,19 @@ def _stake_rule_entry(name: str) -> dict:
     definition = STAKE_RULES[name]
     return {
         "name": definition.name,
+        "label": definition.label,
         "description": definition.description,
         "parameters": [_parameter_entry(spec) for spec in definition.parameters],
     }
 
 
 def _metric_entry(spec: MetricSpec) -> dict:
-    return {"key": spec.key, "label": spec.label, "unit": spec.unit}
+    return {
+        "key": spec.key,
+        "label": spec.label,
+        "unit": spec.unit,
+        "description": spec.description,
+    }
 
 
 def _warehouse_summary(connection: duckdb.DuckDBPyConnection) -> dict:

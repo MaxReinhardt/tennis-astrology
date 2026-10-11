@@ -7,7 +7,7 @@ Avg book, and Pinnacle's lower margin gives *every* bet positive CLV. A random_b
 control with identical fills measures that artefact; edge is CLV in excess of it."""
 
 from tennisdb.research.context import StudyContext
-from tennisdb.research.protocol import FindingTable, Hypothesis, StudyResult, Verdict
+from tennisdb.research.protocol import FindingTable, Hypothesis, PlainSummary, StudyResult, Verdict
 from tennisdb.research.studies.common import (
     IN_SAMPLE_LAST_SEASON,
     OUT_OF_SAMPLE_FIRST_SEASON,
@@ -24,6 +24,17 @@ MIN_TUNING_BETS = 300
 class ClvPersistenceStudy:
     study_id = "s1_clv_persistence"
     title = "S1 · Does EloValue show positive CLV when ROI is noisy?"
+    plain = PlainSummary(
+        title="Can a player-rating model spot mispriced odds?",
+        summary=(
+            "We rate every player with Elo (a score that rises with wins and falls with "
+            "losses) and bet whenever our rating likes a player clearly more than the "
+            "bookmakers do. We then check whether those bets got better odds than the final "
+            "pre-match odds, compared with simply betting at random. The better odds seen in "
+            "the raw numbers turn out to come from the bookmaker we place bets with, not from "
+            "the rating."
+        ),
+    )
     hypothesis = Hypothesis(
         statement=(
             "Bets placed when Elo disagrees with the closing market by at least θ beat the "
@@ -71,7 +82,7 @@ class ClvPersistenceStudy:
         )
         if not eligible:
             return StudyResult(
-                self.study_id, self.title, self.hypothesis, (tuning_table,), (),
+                self.study_id, self.title, self.hypothesis, self.plain, (tuning_table,), (),
                 Verdict.INCONCLUSIVE, "No θ placed enough in-sample bets to tune on.",
             )  # fmt: skip
         chosen = max(
@@ -100,7 +111,7 @@ class ClvPersistenceStudy:
         )  # fmt: skip
         verdict, conclusion = _verdict(clv_low, control.metrics.clv, roi_low, roi_high)
         return StudyResult(
-            self.study_id, self.title, self.hypothesis, (tuning_table, holdout_table),
+            self.study_id, self.title, self.hypothesis, self.plain, (tuning_table, holdout_table),
             holdout.charts(), verdict, conclusion,
         )  # fmt: skip
 

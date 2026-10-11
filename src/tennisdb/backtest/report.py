@@ -27,22 +27,99 @@ class MetricSpec:
     label: str
     unit: str  # 'percent' | 'ratio' | 'count' | 'odds'
     precision: int
+    description: str
 
 
 METRIC_SPECS: tuple[MetricSpec, ...] = (
-    MetricSpec("bet_count", "Bets placed", "count", 0),
-    MetricSpec("roi", "Return on investment", "percent", 2),
-    MetricSpec("annualized_return", "Annualized return", "percent", 2),
-    MetricSpec("max_drawdown", "Maximum drawdown", "percent", 2),
-    MetricSpec("hit_rate", "Hit rate", "percent", 1),
-    MetricSpec("average_price_taken", "Average price taken", "odds", 2),
-    MetricSpec("clv", "Closing line value", "percent", 2),
-    MetricSpec("fair_value_edge", "Fair-value edge", "percent", 2),
-    MetricSpec("brier_score", "Brier score", "ratio", 4),
-    MetricSpec("log_loss", "Log loss", "ratio", 4),
-    MetricSpec("roi_ci_low", "ROI 95% CI low", "percent", 2),
-    MetricSpec("roi_ci_high", "ROI 95% CI high", "percent", 2),
-    MetricSpec("ruin_probability", "Probability of ruin", "percent", 2),
+    MetricSpec("bet_count", "Bets placed", "count", 0, "How many bets the strategy made."),
+    MetricSpec(
+        "roi",
+        "Return on investment",
+        "percent",
+        2,
+        "Profit divided by the total money staked (ROI). -5% means 5 cents lost per "
+        "currency unit bet; positive means money made.",
+    ),
+    MetricSpec(
+        "annualized_return",
+        "Annualized return",
+        "percent",
+        2,
+        "The gain or loss on the starting money, scaled to a typical year so periods of "
+        "different length can be compared.",
+    ),
+    MetricSpec(
+        "max_drawdown",
+        "Maximum drawdown",
+        "percent",
+        2,
+        "The biggest fall from a previous high point of the money pot. It shows how "
+        "painful the worst losing streak was.",
+    ),
+    MetricSpec("hit_rate", "Hit rate", "percent", 1, "Share of bets that won."),
+    MetricSpec(
+        "average_price_taken",
+        "Average price taken",
+        "odds",
+        2,
+        "Average decimal odds of the bets. 2.00 doubles the stake if it wins; higher "
+        "means longer shots.",
+    ),
+    MetricSpec(
+        "clv",
+        "Closing line value",
+        "percent",
+        2,
+        "How much better the odds we got were than the final odds just before the match "
+        "(CLV). Consistently beating them is the strongest sign of real skill, because "
+        "final odds are the sharpest estimate.",
+    ),
+    MetricSpec(
+        "fair_value_edge",
+        "Fair-value edge",
+        "percent",
+        2,
+        "How far the odds we took were from the 'fair' odds once the bookmaker's margin "
+        "is removed. Positive means we got a better-than-fair price.",
+    ),
+    MetricSpec(
+        "brier_score",
+        "Brier score",
+        "ratio",
+        4,
+        "Accuracy of the win chances the strategy believed in. 0 is perfect and 0.25 is "
+        "no better than guessing 50/50; lower is better.",
+    ),
+    MetricSpec(
+        "log_loss",
+        "Log loss",
+        "ratio",
+        4,
+        "Another accuracy score for the believed win chances that punishes confident "
+        "wrong guesses heavily; lower is better.",
+    ),
+    MetricSpec(
+        "roi_ci_low",
+        "ROI 95% CI low",
+        "percent",
+        2,
+        "Lower end of the range in which the true ROI very probably lies (a confidence "
+        "interval, found by re-sampling the bets many times: bootstrapping).",
+    ),
+    MetricSpec(
+        "roi_ci_high",
+        "ROI 95% CI high",
+        "percent",
+        2,
+        "Upper end of the same range. If the range spans 0, luck cannot be ruled out.",
+    ),
+    MetricSpec(
+        "ruin_probability",
+        "Probability of ruin",
+        "percent",
+        2,
+        "Chance, in re-shuffled versions of the same bets, of losing the whole starting money.",
+    ),
 )
 
 
@@ -100,6 +177,7 @@ class BacktestResult:
                     "key": spec.key,
                     "label": spec.label,
                     "unit": spec.unit,
+                    "description": spec.description,
                     "value": getattr(self.metrics, spec.key),
                     "formatted": _format(
                         getattr(self.metrics, spec.key), spec.unit, spec.precision
@@ -181,14 +259,33 @@ def write_artifacts(result: BacktestResult, directory: Path = config.BACKTESTS_D
     _write_csv(
         run_directory / "bets.csv",
         (
-            "match_id", "match_date", "side", "probability", "price", "fill_price",
-            "consensus_price", "consensus_prob", "stake", "profit", "won", "bankroll_after",
+            "match_id",
+            "match_date",
+            "side",
+            "probability",
+            "price",
+            "fill_price",
+            "consensus_price",
+            "consensus_prob",
+            "stake",
+            "profit",
+            "won",
+            "bankroll_after",
         ),  # fmt: skip
         (
             (
-                bet.match_id, bet.match_date, bet.side, bet.probability, bet.price,
-                bet.fill_price, bet.consensus_price, bet.consensus_prob, bet.stake,
-                bet.profit, bet.won, bet.bankroll_after,
+                bet.match_id,
+                bet.match_date,
+                bet.side,
+                bet.probability,
+                bet.price,
+                bet.fill_price,
+                bet.consensus_price,
+                bet.consensus_prob,
+                bet.stake,
+                bet.profit,
+                bet.won,
+                bet.bankroll_after,
             )  # fmt: skip
             for bet in result.bets
         ),

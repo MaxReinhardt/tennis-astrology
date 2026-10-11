@@ -9,6 +9,8 @@
     "in_sample": "none \u2014 nothing is fit",
     "out_of_sample": "none \u2014 the whole odds-era sample"
   },
+  "plain_title": "Do star signs predict who wins?",
+  "plain_summary": "We check whether players born under a given star sign, element or month win more often than the odds predict. There is no reason this should work, so it shows how often pure chance looks like a pattern when many groups are tested.",
   "tables": [
     {
       "title": "28 cohort tests against the market",

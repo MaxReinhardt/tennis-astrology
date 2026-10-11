@@ -22,6 +22,8 @@ Home crowds, local-media attention and bettors backing their compatriots could p
 
 <!-- generated:results -->
 
+> **In plain words:** We check whether players from the country hosting a tournament win more or less often than the bookmakers' odds imply, and whether betting on them (or against them) would have made money.
+
 **Verdict: not supported** — Home players' win rate is indistinguishable from their market price (p = 0.759) and neither strategy beats the margin on the holdout.
 
 #### Home player vs market (matches with exactly one home player)

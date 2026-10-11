@@ -4,7 +4,7 @@ tuned, so the strategies run on the whole sample and again on the 2019+ holdout.
 
 from tennisdb.backtest.charts import ChartSeries
 from tennisdb.research.context import StudyContext
-from tennisdb.research.protocol import FindingTable, Hypothesis, StudyResult, Verdict
+from tennisdb.research.protocol import FindingTable, Hypothesis, PlainSummary, StudyResult, Verdict
 from tennisdb.research.significance import two_sided_binomial_p_value
 from tennisdb.research.studies.common import (
     MIN_BETS_FOR_A_CLAIM,
@@ -30,6 +30,14 @@ _SAMPLES = (
 class HostNationStudy:
     study_id = "s4_host_nation"
     title = "S4 · Does backing or fading home-nation players make money?"
+    plain = PlainSummary(
+        title="Do players win more at home than the odds expect?",
+        summary=(
+            "We check whether players from the country hosting a tournament win more or less "
+            "often than the bookmakers' odds imply, and whether betting on them (or against "
+            "them) would have made money."
+        ),
+    )
     hypothesis = Hypothesis(
         statement=(
             "Players from the tournament's host country win at a rate different from their "
@@ -110,6 +118,6 @@ class HostNationStudy:
                 f"{', '.join(profitable) or 'neither strategy'}."
             )
         return StudyResult(
-            self.study_id, self.title, self.hypothesis, (cross_section_table, strategy_table),
-            (chart,), verdict, conclusion,
+            self.study_id, self.title, self.hypothesis, self.plain,
+            (cross_section_table, strategy_table), (chart,), verdict, conclusion,
         )  # fmt: skip

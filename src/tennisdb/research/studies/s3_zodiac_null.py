@@ -6,7 +6,7 @@ from math import sqrt
 
 from tennisdb.backtest.charts import ChartPoint, ChartSeries
 from tennisdb.research.context import GroupOutcome, StudyContext
-from tennisdb.research.protocol import FindingTable, Hypothesis, StudyResult, Verdict
+from tennisdb.research.protocol import FindingTable, Hypothesis, PlainSummary, StudyResult, Verdict
 from tennisdb.research.significance import (
     benjamini_hochberg,
     bonferroni,
@@ -21,6 +21,14 @@ _Z_95 = 1.96
 class ZodiacNullStudy:
     study_id = "s3_zodiac_null"
     title = "S3 · Does a player's zodiac sign beat the market?"
+    plain = PlainSummary(
+        title="Do star signs predict who wins?",
+        summary=(
+            "We check whether players born under a given star sign, element or month win more "
+            "often than the odds predict. There is no reason this should work, so it shows "
+            "how often pure chance looks like a pattern when many groups are tested."
+        ),
+    )
     hypothesis = Hypothesis(
         statement=(
             "At least one zodiac sign, element or birth month wins more often than its "
@@ -78,7 +86,14 @@ class ZodiacNullStudy:
                 f"survives correction (smallest Bonferroni p = {smallest:.3f})."
             )
         return StudyResult(
-            self.study_id, self.title, self.hypothesis, (table,), (chart,), verdict, conclusion
+            self.study_id,
+            self.title,
+            self.hypothesis,
+            self.plain,
+            (table,),
+            (chart,),
+            verdict,
+            conclusion,
         )
 
 

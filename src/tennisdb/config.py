@@ -28,6 +28,8 @@ SUPABASE_URL = os.environ.get("SUPABASE_URL")
 SUPABASE_SERVICE_KEY = os.environ.get("SUPABASE_SERVICE_KEY")
 SUPABASE_READ_URL = os.environ.get("SUPABASE_READ_URL")
 ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY")
+GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN")
+GITHUB_REPOSITORY = os.environ.get("GITHUB_REPOSITORY") or "MaxReinhardt/tennis-astrology"
 
 # The upstream JeffSackmann/tennis_{atp,wta} repos vanished from GitHub in
 # mid-2026; these are the freshest surviving forks (ATP synced 2026-06,
