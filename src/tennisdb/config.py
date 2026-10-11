@@ -15,6 +15,9 @@ SACKMANN_RAW_DIR = RAW_DIR / "sackmann"
 TENNISDATA_RAW_DIR = RAW_DIR / "tennisdata"
 DUCKDB_PATH = DATA_DIR / "warehouse.duckdb"
 QUALITY_DIR = DATA_DIR / "quality"
+BACKTESTS_DIR = DATA_DIR / "backtests"
+STUDIES_DIR = PROJECT_ROOT / "studies"
+API_STUDY_RESULTS_DIR = Path(__file__).resolve().parent / "api" / "study_results"
 MIGRATIONS_DIR = PROJECT_ROOT / "db" / "migrations"
 SEED_DIR = PROJECT_ROOT / "db" / "seed"
 
@@ -23,6 +26,10 @@ load_dotenv(PROJECT_ROOT / ".env")
 SUPABASE_DB_URL = os.environ.get("SUPABASE_DB_URL")
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
 SUPABASE_SERVICE_KEY = os.environ.get("SUPABASE_SERVICE_KEY")
+SUPABASE_READ_URL = os.environ.get("SUPABASE_READ_URL")
+ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY")
+GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN")
+GITHUB_REPOSITORY = os.environ.get("GITHUB_REPOSITORY") or "MaxReinhardt/tennis-astrology"
 
 # The upstream JeffSackmann/tennis_{atp,wta} repos vanished from GitHub in
 # mid-2026; these are the freshest surviving forks (ATP synced 2026-06,
@@ -38,4 +45,7 @@ def ensure_data_directories() -> None:
         directory.mkdir(parents=True, exist_ok=True)
 
 
-ensure_data_directories()
+try:
+    ensure_data_directories()
+except OSError:
+    pass  # read-only serverless filesystem: only the ingest scripts need these directories

@@ -1,0 +1,15 @@
+# Allowlist: ignore everything at the top level, then admit only what deploys.
+# The CLI does not honour .gitignore, so without this it uploads data/ (multi-GB),
+# .venv/ and .env (secrets).
+/*
+!vercel.json
+!src
+!web
+# build and dev artefacts inside the admitted folders
+src/.vercel
+**/.venv
+**/__pycache__
+web/node_modules
+web/.next
+web/next-env.d.ts
+web/*.tsbuildinfo

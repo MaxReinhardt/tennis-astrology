@@ -1,0 +1,311 @@
+{
+  "study_id": "s2_favourite_longshot",
+  "title": "S2 \u00b7 Favourite\u2013longshot bias by surface and price",
+  "hypothesis": {
+    "statement": "Expected value declines as the price lengthens: on every surface the shortest bucket has a higher ROI than the longest, and no bucket's ROI interval lies entirely above zero.",
+    "rationale": "Bettors overpay for longshots, so books can shade them harder; favourites are closer to fairly priced, though still net of the margin.",
+    "metric": "ROI per surface x price bucket, with bootstrap 95% CI (flat stake)",
+    "threshold": "Supported iff shortest-bucket ROI > longest-bucket ROI on all 3 surfaces and no bucket with >= 100 bets has ROI CI low > 0.",
+    "in_sample": "none \u2014 descriptive, nothing is tuned",
+    "out_of_sample": "none \u2014 the whole odds-era sample"
+  },
+  "plain_title": "Are long-shot bets worse value than favourites?",
+  "plain_summary": "Bookmakers are thought to charge more on unlikely winners (long shots) than on likely ones. We bet on every match in each odds range and compare the average loss per bet on hard, clay and grass courts.",
+  "tables": [
+    {
+      "title": "ROI by surface and price bucket",
+      "columns": [
+        "Surface",
+        "Price",
+        "Bets",
+        "ROI",
+        "ROI 95% CI"
+      ],
+      "rows": [
+        [
+          "Hard",
+          "1.0\u20131.5",
+          32081,
+          "-2.52%",
+          "-3.10% \u2026 -1.94%"
+        ],
+        [
+          "Hard",
+          "1.5\u20132.0",
+          25553,
+          "-4.50%",
+          "-5.42% \u2026 -3.49%"
+        ],
+        [
+          "Hard",
+          "2.0\u20133.0",
+          27500,
+          "-2.98%",
+          "-4.36% \u2026 -1.55%"
+        ],
+        [
+          "Hard",
+          "3.0\u20135.0",
+          17545,
+          "-5.36%",
+          "-7.67% \u2026 -2.97%"
+        ],
+        [
+          "Hard",
+          "5.0\u201310.0",
+          7864,
+          "-7.59%",
+          "-12.73% \u2026 -2.67%"
+        ],
+        [
+          "Hard",
+          "10.0+",
+          3125,
+          "-32.43%",
+          "-43.32% \u2026 -21.13%"
+        ],
+        [
+          "Clay",
+          "1.0\u20131.5",
+          16223,
+          "-2.17%",
+          "-2.92% \u2026 -1.34%"
+        ],
+        [
+          "Clay",
+          "1.5\u20132.0",
+          13076,
+          "-4.30%",
+          "-5.75% \u2026 -2.91%"
+        ],
+        [
+          "Clay",
+          "2.0\u20133.0",
+          14099,
+          "-2.34%",
+          "-4.33% \u2026 -0.47%"
+        ],
+        [
+          "Clay",
+          "3.0\u20135.0",
+          8799,
+          "-6.64%",
+          "-9.92% \u2026 -3.39%"
+        ],
+        [
+          "Clay",
+          "5.0\u201310.0",
+          3984,
+          "-13.20%",
+          "-20.49% \u2026 -5.91%"
+        ],
+        [
+          "Clay",
+          "10.0+",
+          1543,
+          "-22.19%",
+          "-40.17% \u2026 -3.59%"
+        ],
+        [
+          "Grass",
+          "1.0\u20131.5",
+          6269,
+          "-2.48%",
+          "-3.81% \u2026 -1.21%"
+        ],
+        [
+          "Grass",
+          "1.5\u20132.0",
+          4521,
+          "-3.79%",
+          "-6.29% \u2026 -1.36%"
+        ],
+        [
+          "Grass",
+          "2.0\u20133.0",
+          4898,
+          "-3.34%",
+          "-6.62% \u2026 -0.18%"
+        ],
+        [
+          "Grass",
+          "3.0\u20135.0",
+          3321,
+          "-7.03%",
+          "-12.34% \u2026 -1.43%"
+        ],
+        [
+          "Grass",
+          "5.0\u201310.0",
+          1636,
+          "+0.80%",
+          "-11.09% \u2026 +13.04%"
+        ],
+        [
+          "Grass",
+          "10.0+",
+          695,
+          "-22.57%",
+          "-51.13% \u2026 +10.18%"
+        ]
+      ]
+    }
+  ],
+  "charts": [
+    {
+      "key": "roi_by_bucket_hard",
+      "title": "ROI by price bucket \u2014 Hard",
+      "kind": "bar",
+      "x_label": "Decimal price",
+      "y_label": "ROI",
+      "points": [
+        {
+          "x": "1.0\u20131.5",
+          "y": -0.025242870858140337,
+          "low": -0.031000584458090466,
+          "high": -0.019434533976497,
+          "count": 32081
+        },
+        {
+          "x": "1.5\u20132.0",
+          "y": -0.044998454584588905,
+          "low": -0.05422015755488594,
+          "high": -0.034866473095135624,
+          "count": 25553
+        },
+        {
+          "x": "2.0\u20133.0",
+          "y": -0.029769760000000013,
+          "low": -0.043571863000000016,
+          "high": -0.01552693600000002,
+          "count": 27500
+        },
+        {
+          "x": "3.0\u20135.0",
+          "y": -0.053551536050156764,
+          "low": -0.07674687774294672,
+          "high": -0.029742078369906035,
+          "count": 17545
+        },
+        {
+          "x": "5.0\u201310.0",
+          "y": -0.07594125127161752,
+          "low": -0.1272850381485249,
+          "high": -0.026748895282299144,
+          "count": 7864
+        },
+        {
+          "x": "10.0+",
+          "y": -0.32426243200000004,
+          "low": -0.433233712,
+          "high": -0.21133392400000006,
+          "count": 3125
+        }
+      ]
+    },
+    {
+      "key": "roi_by_bucket_clay",
+      "title": "ROI by price bucket \u2014 Clay",
+      "kind": "bar",
+      "x_label": "Decimal price",
+      "y_label": "ROI",
+      "points": [
+        {
+          "x": "1.0\u20131.5",
+          "y": -0.021678558219811385,
+          "low": -0.029215289450163346,
+          "high": -0.01340528908031808,
+          "count": 16223
+        },
+        {
+          "x": "1.5\u20132.0",
+          "y": -0.04295111578464363,
+          "low": -0.05745184286096667,
+          "high": -0.029114911823187532,
+          "count": 13076
+        },
+        {
+          "x": "2.0\u20133.0",
+          "y": -0.023439676572806593,
+          "low": -0.043250139016951565,
+          "high": -0.0047013688914107595,
+          "count": 14099
+        },
+        {
+          "x": "3.0\u20135.0",
+          "y": -0.06636440504602797,
+          "low": -0.09924227241732017,
+          "high": -0.03394162376406412,
+          "count": 8799
+        },
+        {
+          "x": "5.0\u201310.0",
+          "y": -0.13195338855421687,
+          "low": -0.20485748305722892,
+          "high": -0.05907221762048201,
+          "count": 3984
+        },
+        {
+          "x": "10.0+",
+          "y": -0.22190362929358393,
+          "low": -0.401676689889825,
+          "high": -0.03588740926766048,
+          "count": 1543
+        }
+      ]
+    },
+    {
+      "key": "roi_by_bucket_grass",
+      "title": "ROI by price bucket \u2014 Grass",
+      "kind": "bar",
+      "x_label": "Decimal price",
+      "y_label": "ROI",
+      "points": [
+        {
+          "x": "1.0\u20131.5",
+          "y": -0.024812888817993303,
+          "low": -0.038075078999840486,
+          "high": -0.012092715345350145,
+          "count": 6269
+        },
+        {
+          "x": "1.5\u20132.0",
+          "y": -0.037869343065693443,
+          "low": -0.06288929379562046,
+          "high": -0.013564131386861364,
+          "count": 4521
+        },
+        {
+          "x": "2.0\u20133.0",
+          "y": -0.03340385871784403,
+          "low": -0.06615167619436506,
+          "high": -0.0018419997958350517,
+          "count": 4898
+        },
+        {
+          "x": "3.0\u20135.0",
+          "y": -0.07027046070460707,
+          "low": -0.12343302845528455,
+          "high": -0.01426980352303528,
+          "count": 3321
+        },
+        {
+          "x": "5.0\u201310.0",
+          "y": 0.008045110024449863,
+          "low": -0.11085277047677262,
+          "high": 0.13035519254278713,
+          "count": 1636
+        },
+        {
+          "x": "10.0+",
+          "y": -0.22567755395683453,
+          "low": -0.511278309352518,
+          "high": 0.10177598561151054,
+          "count": 695
+        }
+      ]
+    }
+  ],
+  "verdict": "supported",
+  "conclusion": "Longshots lose more than favourites on every surface and no bucket is profitable."
+}

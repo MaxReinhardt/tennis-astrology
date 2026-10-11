@@ -1,5 +1,5 @@
-"""Compose the M6 feature builders — elo → form → serve_form → market → astro — into
-the analytics schema and log the row counts to tennis.ingest_log."""
+"""Compose the feature builders — elo → form → serve_form → market → astro → geo — into the
+analytics schema and log the row counts to tennis.ingest_log."""
 
 import json
 from dataclasses import dataclass, field
@@ -9,6 +9,7 @@ import duckdb
 from tennisdb.features.astro import build_astro
 from tennisdb.features.elo import build_elo
 from tennisdb.features.form import build_form
+from tennisdb.features.geography import build_edition_geo
 from tennisdb.features.market import build_market
 from tennisdb.features.serve_form import build_serve_form
 
@@ -18,6 +19,7 @@ _BUILDERS = (
     ("serve_form", build_serve_form),
     ("market", build_market),
     ("player_astro", build_astro),
+    ("edition_geo", build_edition_geo),
 )
 
 

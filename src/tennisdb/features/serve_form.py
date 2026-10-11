@@ -218,7 +218,7 @@ def _bare_feature_names() -> tuple[str, ...]:
 
 def feature_columns() -> tuple[str, ...]:
     """Ordered p1/p2-oriented feature columns (excluding match_id) — matches
-    db/migrations/005_serve_form.sql and publish.py's SERVE_FORM column tuple."""
+    db/migrations/006_serve_form.sql and publish.py's SERVE_FORM column tuple."""
     columns = ["p1_serve_matches_available", "p2_serve_matches_available"]
     for metric in _METRICS:
         for prefix in ("p1", "p2"):

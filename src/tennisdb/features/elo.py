@@ -43,7 +43,10 @@ JOIN tennis.matches_model AS model USING (match_id)
 """
 
 
-def _expected(rating: float, opponent_rating: float) -> float:
+def elo_probability(rating: float, opponent_rating: float) -> float:
+    """Win probability implied by the Elo rating gap. Public so the backtest engine's
+    opportunity source (backtest/opportunities.py) derives pre-match win probabilities
+    from the same formula these ratings were fitted with, rather than restating it."""
     return 1.0 / (1.0 + 10.0 ** ((opponent_rating - rating) / 400.0))
 
 
@@ -81,7 +84,7 @@ def compute_elo_pre(matches: pd.DataFrame) -> pd.DataFrame:
 
 
 def _apply_result(ratings, played, winner_key, loser_key, winner_rating, loser_rating) -> None:
-    winner_expected = _expected(winner_rating, loser_rating)
+    winner_expected = elo_probability(winner_rating, loser_rating)
     ratings[winner_key] = winner_rating + _k_factor(played.get(winner_key, 0)) * (
         1.0 - winner_expected
     )
